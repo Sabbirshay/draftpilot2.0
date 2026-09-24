@@ -1,0 +1,27 @@
+
+Running 20 tests using 1 worker
+
+(node:27) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/universal.spec.ts:151:5 › Zendesk: uploaded knowledge → actual API/quota → workspace tone → reviewed in-page insertion (305ms)
+  ✓   2 tests/e2e/universal.spec.ts:175:5 › generic fallback: selected text → grounded draft → native textarea, without clipboard (268ms)
+  ✓   3 tests/e2e/universal.spec.ts:188:5 › generic message picker and explicit reply target support multiple editors without overwriting (452ms)
+  ✓   4 tests/e2e/universal.spec.ts:217:5 › changed customer messages invalidate the prepared draft (174ms)
+  ✓   5 tests/e2e/universal.spec.ts:229:5 › tone override is honored, synthetic page clicks cannot generate, and closing hides panel (185ms)
+  ✓   6 tests/e2e/universal.spec.ts:253:5 › replaced reply boxes and changed URLs reject stale insertion (290ms)
+  ✓   7 tests/e2e/universal.spec.ts:268:5 › revoked sessions cannot quietly fall back to ungrounded local generation (145ms)
+  ✓   8 tests/e2e/workspace.spec.ts:2:5 › desktop dashboard loads without browser errors and renders all navigation (609ms)
+  ✓   9 tests/e2e/workspace.spec.ts:24:5 › generate, edit, review and reopen a draft (699ms)
+  ✓  10 tests/e2e/workspace.spec.ts:62:5 › create, search, edit, use and delete a macro (971ms)
+  ✓  11 tests/e2e/workspace.spec.ts:95:5 › knowledge ingestion is visible and deletable (601ms)
+  ✓  12 tests/e2e/workspace.spec.ts:118:5 › settings save, search keyboard shortcut and honest integration statuses (595ms)
+  ✓  13 tests/e2e/workspace.spec.ts:145:5 › mobile menu, drafting and dialogs remain within viewport (721ms)
+  ✓  14 tests/e2e/workspace.spec.ts:173:5 › cross-origin auth and API mutations are rejected before configuration lookup (66ms)
+  ✓  15 tests/e2e/workspace.spec.ts:186:5 › security headers deny framing and avoid unsafe script execution in production (20ms)
+  ✓  16 tests/e2e/workspace.spec.ts:198:5 › extension detects redacted context, inserts plain text, and protects existing compose text (200ms)
+  ✓  17 tests/e2e/workspace.spec.ts:285:5 › team roles and removal work without removing the owner (504ms)
+  ✓  18 tests/e2e/workspace.spec.ts:303:5 › spreadsheet knowledge imports locally and oversized files are rejected (831ms)
+  ✓  19 tests/e2e/workspace.spec.ts:337:5 › password recovery form validates inputs without pretending to send in demo (273ms)
+  ✓  20 tests/e2e/workspace.spec.ts:350:5 › XLSX policies import through the isolated spreadsheet worker (789ms)
+
+  20 passed (12.6s)

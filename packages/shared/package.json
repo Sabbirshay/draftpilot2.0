@@ -1,0 +1,25 @@
+{
+  "name": "@draftpilot/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./privacy": {
+      "types": "./dist/privacy.d.ts",
+      "default": "./dist/privacy.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}

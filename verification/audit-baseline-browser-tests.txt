@@ -1,0 +1,21 @@
+$ playwright test
+
+Running 13 tests using 1 worker
+
+(node:42) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/workspace.spec.ts:2:5 › desktop dashboard loads without browser errors and renders all navigation (661ms)
+  ✓   2 tests/e2e/workspace.spec.ts:24:5 › generate, edit, review and reopen a draft (735ms)
+  ✓   3 tests/e2e/workspace.spec.ts:62:5 › create, search, edit, use and delete a macro (1.0s)
+  ✓   4 tests/e2e/workspace.spec.ts:95:5 › knowledge ingestion is visible and deletable (620ms)
+  ✓   5 tests/e2e/workspace.spec.ts:118:5 › settings save, search keyboard shortcut and honest integration statuses (559ms)
+  ✓   6 tests/e2e/workspace.spec.ts:143:5 › mobile menu, drafting and dialogs remain within viewport (721ms)
+  ✓   7 tests/e2e/workspace.spec.ts:171:5 › cross-origin auth and API mutations are rejected before configuration lookup (69ms)
+  ✓   8 tests/e2e/workspace.spec.ts:184:5 › security headers deny framing and avoid unsafe script execution in production (21ms)
+  ✓   9 tests/e2e/workspace.spec.ts:196:5 › extension detects redacted context, inserts plain text, and protects existing compose text (177ms)
+  ✓  10 tests/e2e/workspace.spec.ts:277:5 › team roles and removal work without removing the owner (503ms)
+  ✓  11 tests/e2e/workspace.spec.ts:295:5 › spreadsheet knowledge imports locally and oversized files are rejected (814ms)
+  ✓  12 tests/e2e/workspace.spec.ts:333:5 › password recovery form validates inputs without pretending to send in demo (292ms)
+  ✓  13 tests/e2e/workspace.spec.ts:346:5 › XLSX policies import through the isolated spreadsheet worker (829ms)
+
+  13 passed (7.7s)

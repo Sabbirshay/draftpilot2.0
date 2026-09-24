@@ -1,0 +1,8 @@
+packages/api/src/ai-usage.ts 84ms
+packages/api/src/ai.ts 53ms
+packages/api/src/admin.controller.ts 75ms (unchanged)
+packages/web/components/admin-console.tsx 177ms
+packages/web/components/admin-command-overview.tsx 23ms
+packages/web/components/admin-console.css 97ms
+tests/live-overview.test.ts 20ms
+tests/e2e/admin-live.spec.ts 39ms

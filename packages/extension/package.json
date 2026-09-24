@@ -1,0 +1,17 @@
+{
+  "name": "@draftpilot/extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs && node scripts/package.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@draftpilot/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^7.2.0",
+    "@types/chrome": "^0.1.0"
+  }
+}

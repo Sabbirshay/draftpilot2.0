@@ -1,0 +1,32 @@
+[
+  {
+    "path": "/health",
+    "status": 200,
+    "body": "{\"status\":\"ok\",\"version\":\"1.0.0\",\"configured\":false}"
+  },
+  {
+    "path": "/ready",
+    "status": 503,
+    "body": "{\"statusCode\":503,\"message\":\"Database not configured.\"}"
+  },
+  {
+    "path": "/workspace",
+    "status": 401,
+    "body": "{\"statusCode\":401,\"message\":\"Sign in to continue.\"}"
+  },
+  {
+    "path": "/drafts/generate",
+    "status": 401,
+    "body": "{\"statusCode\":401,\"message\":\"Sign in to continue.\"}"
+  },
+  {
+    "path": "/admin/metrics",
+    "status": 401,
+    "body": "{\"statusCode\":401,\"message\":\"Sign in to continue.\"}"
+  },
+  {
+    "path": "/internal/retention",
+    "status": 400,
+    "body": "{\"statusCode\":400,\"message\":\"Invalid job credential.\"}"
+  }
+]

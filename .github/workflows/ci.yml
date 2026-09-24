@@ -1,0 +1,36 @@
+name: Verify DraftPilot
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @draftpilot/shared build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm audit --prod --audit-level=high
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: |
+          DRAFTPILOT_DEMO=1 pnpm --filter @draftpilot/web start &
+          node scripts/wait-for-server.mjs
+          APP_URL=http://127.0.0.1:3106 DRAFTPILOT_DEMO=0 SUPABASE_URL=https://fixture.supabase.invalid SUPABASE_ANON_KEY=fixture-not-a-secret API_INTERNAL_URL=http://127.0.0.1:3999 pnpm --filter @draftpilot/web exec next start --hostname 127.0.0.1 --port 3106 &
+          TEST_BASE_URL=http://127.0.0.1:3106/admin node scripts/wait-for-server.mjs
+          ADMIN_TEST_URL=http://127.0.0.1:3106 CHROME_PATH=$(node -e "console.log(require('@playwright/test').chromium.executablePath())") pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results

@@ -1,0 +1,257 @@
+$ tsx --test tests/*.test.ts
+TAP version 13
+# Subtest: redacts common sensitive patterns without losing support context
+ok 1 - redacts common sensitive patterns without losing support context
+  ---
+  duration_ms: 1.526181
+  type: 'test'
+  ...
+# Subtest: redacts JWTs and API keys
+ok 2 - redacts JWTs and API keys
+  ---
+  duration_ms: 0.153464
+  type: 'test'
+  ...
+# Subtest: redaction is idempotent
+ok 3 - redaction is idempotent
+  ---
+  duration_ms: 0.119722
+  type: 'test'
+  ...
+# Subtest: does not claim redaction detects names
+ok 4 - does not claim redaction detects names
+  ---
+  duration_ms: 0.086531
+  type: 'test'
+  ...
+# Subtest: cleans reasoning and sensitive output
+ok 5 - cleans reasoning and sensitive output
+  ---
+  duration_ms: 0.340742
+  type: 'test'
+  ...
+# Subtest: fallback does not invent a refund or delivery promise
+ok 6 - fallback does not invent a refund or delivery promise
+  ---
+  duration_ms: 0.176307
+  type: 'test'
+  ...
+# Subtest: fallback uses approved guidance when present
+ok 7 - fallback uses approved guidance when present
+  ---
+  duration_ms: 0.147082
+  type: 'test'
+  ...
+# Subtest: source ranking excludes unrelated knowledge
+ok 8 - source ranking excludes unrelated knowledge
+  ---
+  duration_ms: 0.238913
+  type: 'test'
+  ...
+# Subtest: rejects injected tenant fields, invalid channel and oversized input
+ok 9 - rejects injected tenant fields, invalid channel and oversized input
+  ---
+  duration_ms: 3.188614
+  type: 'test'
+  ...
+# Subtest: rejects invalid macro fields
+ok 10 - rejects invalid macro fields
+  ---
+  duration_ms: 1.496937
+  type: 'test'
+  ...
+# Subtest: roles cannot escalate by body fields
+ok 11 - roles cannot escalate by body fields
+  ---
+  duration_ms: 0.260333
+  type: 'test'
+  ...
+# Subtest: platform administration requires both server role and MFA
+ok 12 - platform administration requires both server role and MFA
+  ---
+  duration_ms: 0.218005
+  type: 'test'
+  ...
+# Subtest: pairing token hashes are deterministic and hide original tokens
+ok 13 - pairing token hashes are deterministic and hide original tokens
+  ---
+  duration_ms: 0.252248
+  type: 'test'
+  ...
+# Subtest: untrusted email stays in the user data, not the system prompt
+ok 14 - untrusted email stays in the user data, not the system prompt
+  ---
+  duration_ms: 0.230818
+  type: 'test'
+  ...
+# Subtest: provider cascade falls back on failure and cleans successful replies
+ok 15 - provider cascade falls back on failure and cleans successful replies
+  ---
+  duration_ms: 16.885619
+  type: 'test'
+  ...
+# Subtest: audit \#8: scrubs every outbound prompt segment including stored guidance and PINs
+ok 16 - audit \#8: scrubs every outbound prompt segment including stored guidance and PINs
+  ---
+  duration_ms: 0.208337
+  type: 'test'
+  ...
+# Subtest: audit \#3: rejects all client playground/model/budget overrides
+ok 17 - audit \#3: rejects all client playground/model/budget overrides
+  ---
+  duration_ms: 2.595925
+  type: 'test'
+  ...
+# Subtest: audit \#11: emergency stop denies generation before quota or providers
+ok 18 - audit \#11: emergency stop denies generation before quota or providers
+  ---
+  duration_ms: 5.723796
+  type: 'test'
+  ...
+# Subtest: audit \#5: rejects wrong annual, amount, currency and metered Stripe prices
+ok 19 - audit \#5: rejects wrong annual, amount, currency and metered Stripe prices
+  ---
+  duration_ms: 5.384597
+  type: 'test'
+  ...
+# Subtest: migration enables RLS on every application table
+ok 20 - migration enables RLS on every application table
+  ---
+  duration_ms: 1700.306008
+  type: 'test'
+  ...
+# Subtest: provisioning is idempotent and preserves membership
+ok 21 - provisioning is idempotent and preserves membership
+  ---
+  duration_ms: 1.435653
+  type: 'test'
+  ...
+# Subtest: tenant cannot read another tenant macros or team
+ok 22 - tenant cannot read another tenant macros or team
+  ---
+  duration_ms: 5.701716
+  type: 'test'
+  ...
+# Subtest: browser cannot mutate roles or quotas even for its own team
+ok 23 - browser cannot mutate roles or quotas even for its own team
+  ---
+  duration_ms: 3.600979
+  type: 'test'
+  ...
+# Subtest: anonymous access and platform secret table access fail closed
+ok 24 - anonymous access and platform secret table access fail closed
+  ---
+  duration_ms: 4.379123
+  type: 'test'
+  ...
+# Subtest: cross-team child relationships are rejected
+ok 25 - cross-team child relationships are rejected
+  ---
+  duration_ms: 4.160236
+  type: 'test'
+  ...
+# Subtest: duplicate requests count once and quota rejects an extra request
+ok 26 - duplicate requests count once and quota rejects an extra request
+  ---
+  duration_ms: 7.888963
+  type: 'test'
+  ...
+# Subtest: failed draft refunds its reservation only once
+ok 27 - failed draft refunds its reservation only once
+  ---
+  duration_ms: 2.315595
+  type: 'test'
+  ...
+# Subtest: foreign user cannot reserve against another workspace
+ok 28 - foreign user cannot reserve against another workspace
+  ---
+  duration_ms: 0.87863
+  type: 'test'
+  ...
+# Subtest: suspended workspace cannot reserve drafts
+ok 29 - suspended workspace cannot reserve drafts
+  ---
+  duration_ms: 1.637627
+  type: 'test'
+  ...
+# Subtest: extension pairing codes are single-use and expire
+ok 30 - extension pairing codes are single-use and expire
+  ---
+  duration_ms: 4.941956
+  type: 'test'
+  ...
+# Subtest: invite is bound to recipient email and is single-use
+ok 31 - invite is bound to recipient email and is single-use
+  ---
+  duration_ms: 4.612305
+  type: 'test'
+  ...
+# Subtest: rate limiter stops requests at the configured limit
+ok 32 - rate limiter stops requests at the configured limit
+  ---
+  duration_ms: 1.720181
+  type: 'test'
+  ...
+# Subtest: billing events are idempotent and older events cannot overwrite newer state
+ok 33 - billing events are idempotent and older events cannot overwrite newer state
+  ---
+  duration_ms: 5.28851
+  type: 'test'
+  ...
+# Subtest: retention removes expired drafts and stale pairing codes
+ok 34 - retention removes expired drafts and stale pairing codes
+  ---
+  duration_ms: 3.735599
+  type: 'test'
+  ...
+# Subtest: owner can change roles, but cannot remove the owner or a foreign member
+ok 35 - owner can change roles, but cannot remove the owner or a foreign member
+  ---
+  duration_ms: 3.117453
+  type: 'test'
+  ...
+# Subtest: seat downgrade preserves owner access and blocks excess members
+ok 36 - seat downgrade preserves owner access and blocks excess members
+  ---
+  duration_ms: 3.050027
+  type: 'test'
+  ...
+# Subtest: removing a member revokes their extension tokens but retains team drafts
+ok 37 - removing a member revokes their extension tokens but retains team drafts
+  ---
+  duration_ms: 3.724378
+  type: 'test'
+  ...
+# Subtest: service RPCs do not run as definer and cannot be executed by browsers
+ok 38 - service RPCs do not run as definer and cannot be executed by browsers
+  ---
+  duration_ms: 2.081921
+  type: 'test'
+  ...
+# Subtest: service role can execute the invoker routines using explicit grants
+ok 39 - service role can execute the invoker routines using explicit grants
+  ---
+  duration_ms: 2.583472
+  type: 'test'
+  ...
+# Subtest: RLS also denies direct reads after banning a user or suspending a workspace
+ok 40 - RLS also denies direct reads after banning a user or suspending a workspace
+  ---
+  duration_ms: 5.230181
+  type: 'test'
+  ...
+# Subtest: audit \#1: an unprovisioned authenticated user cannot inject an admin profile into a known team
+ok 41 - audit \#1: an unprovisioned authenticated user cannot inject an admin profile into a known team
+  ---
+  duration_ms: 1.621788
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2119.077126

@@ -1,0 +1,19 @@
+{
+  "url": "http://127.0.0.1:3111/",
+  "lighthouseVersion": "13.5.0",
+  "fetchTime": "2026-09-23T19:37:16.395Z",
+  "formFactor": "mobile",
+  "scores": {
+    "performance": 98,
+    "accessibility": 100,
+    "best-practices": 100,
+    "seo": 100
+  },
+  "metrics": {
+    "first-contentful-paint": "1.4\u00a0s",
+    "largest-contentful-paint": "2.1\u00a0s",
+    "total-blocking-time": "110\u00a0ms",
+    "cumulative-layout-shift": "0.002"
+  },
+  "note": "Local production build, simulated mobile Lighthouse. Scores are lab measurements, not field guarantees."
+}

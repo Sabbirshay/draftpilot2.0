@@ -1,0 +1,391 @@
+$ pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/api build && tsx --test tests/*.test.ts
+$ tsc
+$ tsc -p tsconfig.json
+TAP version 13
+# Subtest: admin rejects ordinary users, missing MFA, and forged metadata
+ok 1 - admin rejects ordinary users, missing MFA, and forged metadata
+  ---
+  duration_ms: 2060.663327
+  type: 'test'
+  ...
+# Subtest: individual quota is atomic, idempotent and refunds failed attempts once
+ok 2 - individual quota is atomic, idempotent and refunds failed attempts once
+  ---
+  duration_ms: 29.724626
+  type: 'test'
+  ...
+# Subtest: draft-only restriction leaves workspace readable and blocks generation
+ok 3 - draft-only restriction leaves workspace readable and blocks generation
+  ---
+  duration_ms: 29.749321
+  type: 'test'
+  ...
+# Subtest: suspension immediately rejects existing web sessions, revokes extensions and denies RLS reads
+ok 4 - suspension immediately rejects existing web sessions, revokes extensions and denies RLS reads
+  ---
+  duration_ms: 37.536944
+  type: 'test'
+  ...
+# Subtest: manual grants survive payment updates; removal restores current billing entitlements
+ok 5 - manual grants survive payment updates; removal restores current billing entitlements
+  ---
+  duration_ms: 18.845421
+  type: 'test'
+  ...
+# Subtest: pipeline controls pause before quota consumption and fail closed without allowed providers
+ok 6 - pipeline controls pause before quota consumption and fail closed without allowed providers
+  ---
+  duration_ms: 55.726092
+  type: 'test'
+  ...
+# Subtest: invalid changes never mutate or create audit success records; successful changes record before/after
+ok 7 - invalid changes never mutate or create audit success records; successful changes record before/after
+  ---
+  duration_ms: 12.377085
+  type: 'test'
+  ...
+# Subtest: validated signed Stripe lifecycle grants paid seats and cancellation restores free limits
+ok 8 - validated signed Stripe lifecycle grants paid seats and cancellation restores free limits
+  ---
+  duration_ms: 79.318427
+  type: 'test'
+  ...
+# Subtest: admin audit write failure rolls back the associated mutation
+ok 9 - admin audit write failure rolls back the associated mutation
+  ---
+  duration_ms: 8.235962
+  type: 'test'
+  ...
+# Subtest: parallel distinct reservations cannot exceed an individual cap
+ok 10 - parallel distinct reservations cannot exceed an individual cap
+  ---
+  duration_ms: 9.090192
+  type: 'test'
+  ...
+# Subtest: workspace removal cannot erase suspension; former accounts remain administrable
+ok 11 - workspace removal cannot erase suspension; former accounts remain administrable
+  ---
+  duration_ms: 24.39722
+  type: 'test'
+  ...
+# Subtest: redacts common sensitive patterns without losing support context
+ok 12 - redacts common sensitive patterns without losing support context
+  ---
+  duration_ms: 1.503357
+  type: 'test'
+  ...
+# Subtest: redacts JWTs and API keys
+ok 13 - redacts JWTs and API keys
+  ---
+  duration_ms: 0.148227
+  type: 'test'
+  ...
+# Subtest: redaction is idempotent
+ok 14 - redaction is idempotent
+  ---
+  duration_ms: 0.101914
+  type: 'test'
+  ...
+# Subtest: does not claim redaction detects names
+ok 15 - does not claim redaction detects names
+  ---
+  duration_ms: 0.084352
+  type: 'test'
+  ...
+# Subtest: cleans reasoning and sensitive output
+ok 16 - cleans reasoning and sensitive output
+  ---
+  duration_ms: 0.343198
+  type: 'test'
+  ...
+# Subtest: fallback does not invent a refund or delivery promise
+ok 17 - fallback does not invent a refund or delivery promise
+  ---
+  duration_ms: 0.201212
+  type: 'test'
+  ...
+# Subtest: fallback uses approved guidance when present
+ok 18 - fallback uses approved guidance when present
+  ---
+  duration_ms: 0.15022
+  type: 'test'
+  ...
+# Subtest: source ranking excludes unrelated knowledge
+ok 19 - source ranking excludes unrelated knowledge
+  ---
+  duration_ms: 0.245913
+  type: 'test'
+  ...
+# Subtest: rejects injected tenant fields, invalid channel and oversized input
+ok 20 - rejects injected tenant fields, invalid channel and oversized input
+  ---
+  duration_ms: 3.377933
+  type: 'test'
+  ...
+# Subtest: rejects invalid macro fields
+ok 21 - rejects invalid macro fields
+  ---
+  duration_ms: 1.47682
+  type: 'test'
+  ...
+# Subtest: roles cannot escalate by body fields
+ok 22 - roles cannot escalate by body fields
+  ---
+  duration_ms: 0.244721
+  type: 'test'
+  ...
+# Subtest: platform administration requires both server role and MFA
+ok 23 - platform administration requires both server role and MFA
+  ---
+  duration_ms: 0.21657
+  type: 'test'
+  ...
+# Subtest: pairing token hashes are deterministic and hide original tokens
+ok 24 - pairing token hashes are deterministic and hide original tokens
+  ---
+  duration_ms: 0.599831
+  type: 'test'
+  ...
+# Subtest: untrusted email stays in the user data, not the system prompt
+ok 25 - untrusted email stays in the user data, not the system prompt
+  ---
+  duration_ms: 0.252285
+  type: 'test'
+  ...
+# Subtest: provider cascade falls back on failure and cleans successful replies
+ok 26 - provider cascade falls back on failure and cleans successful replies
+  ---
+  duration_ms: 21.70633
+  type: 'test'
+  ...
+# Subtest: audit \#8: scrubs every outbound prompt segment including stored guidance and PINs
+ok 27 - audit \#8: scrubs every outbound prompt segment including stored guidance and PINs
+  ---
+  duration_ms: 0.191545
+  type: 'test'
+  ...
+# Subtest: audit \#3: rejects all client playground/model/budget overrides
+ok 28 - audit \#3: rejects all client playground/model/budget overrides
+  ---
+  duration_ms: 3.811274
+  type: 'test'
+  ...
+# Subtest: audit \#11: emergency stop denies generation before quota or providers
+ok 29 - audit \#11: emergency stop denies generation before quota or providers
+  ---
+  duration_ms: 5.581973
+  type: 'test'
+  ...
+# Subtest: audit \#5: rejects wrong annual, amount, currency and metered Stripe prices
+ok 30 - audit \#5: rejects wrong annual, amount, currency and metered Stripe prices
+  ---
+  duration_ms: 8.785852
+  type: 'test'
+  ...
+# Subtest: saved pipeline model, output and temperature controls reach only enabled providers
+ok 31 - saved pipeline model, output and temperature controls reach only enabled providers
+  ---
+  duration_ms: 16.344134
+  type: 'test'
+  ...
+# Subtest: migration enables RLS on every application table
+ok 32 - migration enables RLS on every application table
+  ---
+  duration_ms: 2055.314512
+  type: 'test'
+  ...
+# Subtest: provisioning is idempotent and preserves membership
+ok 33 - provisioning is idempotent and preserves membership
+  ---
+  duration_ms: 1.730478
+  type: 'test'
+  ...
+# Subtest: tenant cannot read another tenant macros or team
+ok 34 - tenant cannot read another tenant macros or team
+  ---
+  duration_ms: 6.150012
+  type: 'test'
+  ...
+# Subtest: browser cannot mutate roles or quotas even for its own team
+ok 35 - browser cannot mutate roles or quotas even for its own team
+  ---
+  duration_ms: 4.509687
+  type: 'test'
+  ...
+# Subtest: anonymous access and platform secret table access fail closed
+ok 36 - anonymous access and platform secret table access fail closed
+  ---
+  duration_ms: 5.485405
+  type: 'test'
+  ...
+# Subtest: cross-team child relationships are rejected
+ok 37 - cross-team child relationships are rejected
+  ---
+  duration_ms: 4.202603
+  type: 'test'
+  ...
+# Subtest: duplicate requests count once and quota rejects an extra request
+ok 38 - duplicate requests count once and quota rejects an extra request
+  ---
+  duration_ms: 12.902471
+  type: 'test'
+  ...
+# Subtest: failed draft refunds its reservation only once
+ok 39 - failed draft refunds its reservation only once
+  ---
+  duration_ms: 3.811639
+  type: 'test'
+  ...
+# Subtest: foreign user cannot reserve against another workspace
+ok 40 - foreign user cannot reserve against another workspace
+  ---
+  duration_ms: 1.147388
+  type: 'test'
+  ...
+# Subtest: suspended workspace cannot reserve drafts
+ok 41 - suspended workspace cannot reserve drafts
+  ---
+  duration_ms: 2.071462
+  type: 'test'
+  ...
+# Subtest: extension pairing codes are single-use and expire
+ok 42 - extension pairing codes are single-use and expire
+  ---
+  duration_ms: 6.826001
+  type: 'test'
+  ...
+# Subtest: invite is bound to recipient email and is single-use
+ok 43 - invite is bound to recipient email and is single-use
+  ---
+  duration_ms: 10.157174
+  type: 'test'
+  ...
+# Subtest: rate limiter stops requests at the configured limit
+ok 44 - rate limiter stops requests at the configured limit
+  ---
+  duration_ms: 2.784768
+  type: 'test'
+  ...
+# Subtest: billing events are idempotent and older events cannot overwrite newer state
+ok 45 - billing events are idempotent and older events cannot overwrite newer state
+  ---
+  duration_ms: 4.589451
+  type: 'test'
+  ...
+# Subtest: retention removes expired drafts and stale pairing codes
+ok 46 - retention removes expired drafts and stale pairing codes
+  ---
+  duration_ms: 3.802332
+  type: 'test'
+  ...
+# Subtest: owner can change roles, but cannot remove the owner or a foreign member
+ok 47 - owner can change roles, but cannot remove the owner or a foreign member
+  ---
+  duration_ms: 3.604326
+  type: 'test'
+  ...
+# Subtest: seat downgrade preserves owner access and blocks excess members
+ok 48 - seat downgrade preserves owner access and blocks excess members
+  ---
+  duration_ms: 4.179111
+  type: 'test'
+  ...
+# Subtest: removing a member revokes their extension tokens but retains team drafts
+ok 49 - removing a member revokes their extension tokens but retains team drafts
+  ---
+  duration_ms: 5.339061
+  type: 'test'
+  ...
+# Subtest: service RPCs do not run as definer and cannot be executed by browsers
+ok 50 - service RPCs do not run as definer and cannot be executed by browsers
+  ---
+  duration_ms: 2.72433
+  type: 'test'
+  ...
+# Subtest: service role can execute the invoker routines using explicit grants
+ok 51 - service role can execute the invoker routines using explicit grants
+  ---
+  duration_ms: 3.175051
+  type: 'test'
+  ...
+# Subtest: RLS also denies direct reads after banning a user or suspending a workspace
+ok 52 - RLS also denies direct reads after banning a user or suspending a workspace
+  ---
+  duration_ms: 5.453066
+  type: 'test'
+  ...
+# Subtest: audit \#1: an unprovisioned authenticated user cannot inject an admin profile into a known team
+ok 53 - audit \#1: an unprovisioned authenticated user cannot inject an admin profile into a known team
+  ---
+  duration_ms: 1.655694
+  type: 'test'
+  ...
+# Subtest: vault uses randomized authenticated encryption, rejects tampering and provider swapping
+ok 54 - vault uses randomized authenticated encryption, rejects tampering and provider swapping
+  ---
+  duration_ms: 2072.910138
+  type: 'test'
+  ...
+# Subtest: customer and non-MFA admin cannot access or write provider credentials
+ok 55 - customer and non-MFA admin cannot access or write provider credentials
+  ---
+  duration_ms: 58.30552
+  type: 'test'
+  ...
+# Subtest: connection persists only ciphertext, response and audit never disclose secret
+ok 56 - connection persists only ciphertext, response and audit never disclose secret
+  ---
+  duration_ms: 25.248099
+  type: 'test'
+  ...
+# Subtest: model must be catalogued and live-tested before global activation
+ok 57 - model must be catalogued and live-tested before global activation
+  ---
+  duration_ms: 32.522127
+  type: 'test'
+  ...
+# Subtest: web credentials cannot generate; extension uses the global model and knowledge
+ok 58 - web credentials cannot generate; extension uses the global model and knowledge
+  ---
+  duration_ms: 32.449045
+  type: 'test'
+  ...
+# Subtest: daily provider limit is atomic and fails closed before a paid call
+ok 59 - daily provider limit is atomic and fails closed before a paid call
+  ---
+  duration_ms: 11.106795
+  type: 'test'
+  ...
+# Subtest: rotation invalidates activation and previously tested revision
+ok 60 - rotation invalidates activation and previously tested revision
+  ---
+  duration_ms: 15.193059
+  type: 'test'
+  ...
+# Subtest: anonymous and authenticated database roles cannot read keys or reserve paid calls
+ok 61 - anonymous and authenticated database roles cannot read keys or reserve paid calls
+  ---
+  duration_ms: 2.769271
+  type: 'test'
+  ...
+# Subtest: OpenRouter validates inference keys and restricts the catalog to text output
+ok 62 - OpenRouter validates inference keys and restricts the catalog to text output
+  ---
+  duration_ms: 0.86015
+  type: 'test'
+  ...
+# Subtest: provider errors and oversized bodies are bounded and do not echo tokens
+ok 63 - provider errors and oversized bodies are bounded and do not echo tokens
+  ---
+  duration_ms: 2.133806
+  type: 'test'
+  ...
+1..63
+# tests 63
+# suites 0
+# pass 63
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3362.74765

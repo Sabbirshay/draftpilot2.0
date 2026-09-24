@@ -1,0 +1,29 @@
+{
+  "name": "draftpilot",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/web dev",
+    "dev:api": "pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/api dev",
+    "build": "pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/api build && pnpm --filter @draftpilot/extension build && pnpm --filter @draftpilot/web build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/api build && tsx --test tests/*.test.ts",
+    "test:db": "tsx --test tests/database.test.ts",
+    "test:e2e": "playwright test",
+    "check:launch": "node scripts/check-launch.mjs",
+    "build:ext": "pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/extension build",
+    "demo:watch": "pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/api build && pnpm --filter @draftpilot/extension build && node scripts/demo-watch.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-pgvector": "^0.0.9",
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

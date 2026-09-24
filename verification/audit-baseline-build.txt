@@ -1,0 +1,48 @@
+$ pnpm --filter @draftpilot/shared build && pnpm --filter @draftpilot/api build && pnpm --filter @draftpilot/extension build && pnpm --filter @draftpilot/web build
+$ tsc
+$ tsc -p tsconfig.json
+$ node scripts/build.mjs && node scripts/package.mjs
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 6 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/sidepanel.html                 2.46 kB │ gzip: 1.18 kB
+dist/assets/sidepanel-CM_8-jkU.css  2.20 kB │ gzip: 0.91 kB
+dist/background.js                  0.21 kB │ gzip: 0.18 kB
+dist/sidepanel.js                   5.47 kB │ gzip: 2.59 kB
+✓ built in 92ms
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/content.js  2.29 kB │ gzip: 1.21 kB
+✓ built in 17ms
+$ node scripts/prepare-worker.mjs && next build
+▲ Next.js 16.3.5 (Turbopack)
+✓ Running next.config.ts took 23ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 734ms
+  Running TypeScript ...
+  Finished TypeScript in 1364ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 307ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /api/auth/[action]
+├ ƒ /api/backend/[...path]
+├ ƒ /invite
+└ ƒ /reset
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,0 +1,9 @@
+<!doctype html><html><head><title>Outlook inbox fixture</title></head><body>
+<nav>Mail folders</nav><div role="listbox"><div role="option"><div role="document">Unrelated private message list preview</div></div></div>
+<main role="main"><section data-app-section="ReadingPane">
+<h2>Order return</h2><article><div id="customer" role="document"><div class="allowTextSelection">Can I return my unused order? Contact alice@example.com.</div></div></article>
+<div role="document" style="display:none">Hidden customer message</div>
+<div aria-hidden="true"><div contenteditable="true" role="textbox">unsent hidden draft</div></div>
+<div id="reply" role="textbox" aria-label="Message body" contenteditable="true" style="min-height:100px;border:1px solid #888"></div><button onclick="window.sent++">Send</button>
+</section></main><script>window.sent=0;window.inputs=0;document.getElementById('reply').addEventListener('input',()=>window.inputs++);</script>
+</body></html>

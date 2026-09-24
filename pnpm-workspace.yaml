@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+allowBuilds:
+  esbuild: true
+  '@scarf/scarf': false
+minimumReleaseAgeExclude:
+  - multer@2.4.0
+overrides:
+  multer: 2.4.0

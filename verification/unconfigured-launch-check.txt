@@ -1,0 +1,15 @@
+NOT READY FOR CUSTOMER LAUNCH
+- APP_URL is missing.
+- API_PUBLIC_URL is missing.
+- API_INTERNAL_URL is missing.
+- SUPABASE_URL is missing.
+- SUPABASE_ANON_KEY is missing.
+- SUPABASE_SERVICE_ROLE_KEY is missing.
+- STRIPE_SECRET_KEY is missing.
+- STRIPE_TEAM_PRICE_ID is missing.
+- STRIPE_WEBHOOK_SECRET is missing.
+- RETENTION_JOB_SECRET is missing.
+- EXTENSION_ORIGINS is missing.
+- An AI provider credential is required.
+- RETENTION_JOB_SECRET must contain at least 32 characters.
+- Rebuild the extension with the production HTTPS API origin.

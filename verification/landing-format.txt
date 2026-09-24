@@ -1,0 +1,9 @@
+packages/web/app/page.tsx 117ms
+packages/web/app/app/page.tsx 5ms (unchanged)
+packages/web/app/landing.css 129ms
+packages/web/components/landing-motion.tsx 19ms
+tests/e2e/landing.spec.ts 19ms
+packages/web/app/api/auth/[action]/route.ts 29ms (unchanged)
+packages/web/app/page.tsx 100ms (unchanged)
+packages/web/app/landing.css 127ms
+tests/e2e/landing.spec.ts 25ms (unchanged)

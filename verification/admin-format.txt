@@ -1,0 +1,6 @@
+packages/web/components/admin-console.tsx 227ms
+packages/web/components/workspace.tsx 192ms
+packages/web/components/admin-console.css 62ms
+tests/admin.test.ts 33ms
+tests/e2e/admin.spec.ts 10ms
+tests/e2e/admin-live.spec.ts 10ms
