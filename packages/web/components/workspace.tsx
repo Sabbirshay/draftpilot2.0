@@ -170,6 +170,11 @@ export default function Workspace({
     } | null>(null);
   const notify = useCallback((message: string) => setNotice(message), []);
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("auth") === "failed") {
+      setAuthError("Google sign-in could not be completed. Please try again in this browser and allow cookies.");
+    }
+  }, []);
+  useEffect(() => {
     if (notice) {
       const timer = setTimeout(() => setNotice(""), 5000);
       return () => clearTimeout(timer);

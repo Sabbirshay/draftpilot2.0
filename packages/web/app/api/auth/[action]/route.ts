@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createClient } from "@supabase/supabase-js";
+import { oauthClient } from "@/lib/oauth-client";
 import { z } from "zod";
 import {
   authClient,
@@ -250,24 +250,13 @@ export async function GET(
       { status: 503 },
     );
   const jar = await cookies();
-  const client = createClient(
+  const client = oauthClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY,
     {
-      auth: {
-        flowType: "pkce",
-        autoRefreshToken: false,
-        persistSession: false,
-        storage: {
-          getItem: () => jar.get("dp_pkce")?.value || null,
-          setItem: (_key, value) => {
-            jar.set("dp_pkce", value, { ...cookieOptions, maxAge: 600 });
-          },
-          removeItem: () => {
-            jar.delete("dp_pkce");
-          },
-        },
-      },
+      get: () => jar.get("dp_pkce")?.value || null,
+      set: (value) => jar.set("dp_pkce", value, { ...cookieOptions, maxAge: 600 }),
+      remove: () => jar.delete("dp_pkce"),
     },
   );
   if (action === "google") {
@@ -286,7 +275,10 @@ export async function GET(
     return NextResponse.redirect(data.url);
   }
   const code = new URL(request.url).searchParams.get("code");
-  if (!code) return NextResponse.redirect(origin + "/login?auth=confirm-email");
+  if (!code) {
+    jar.delete("dp_pkce");
+    return NextResponse.redirect(origin + "/login?auth=failed");
+  }
   const { data, error } = await client.auth.exchangeCodeForSession(code);
   if (error || !data.session)
     return NextResponse.redirect(origin + "/login?auth=failed");
