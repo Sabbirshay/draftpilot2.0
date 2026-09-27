@@ -543,6 +543,9 @@ export default function LandingPage() {
           <p>A thoughtful reply, every time.</p>
         </div>
         <nav aria-label="Footer navigation">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="mailto:support@draftpilot.com">Support</a>
           <a href="#how-it-works">Product</a>
           <a href="#pricing">Pricing</a>
           <a href="#control">Your control</a>

@@ -586,6 +586,11 @@ export default function Workspace({
           >
             Continue with Google
           </button>
+          <p style={{ fontSize: 12, lineHeight: 1.6, marginTop: 16 }}>
+            Review our <a href="/terms">Terms of Service</a> and{" "}
+            <a href="/privacy">Privacy Policy</a> before creating an account.
+            Contact <a href="mailto:support@draftpilot.com">support</a> for help.
+          </p>
           <button
             className="text-button"
             onClick={() =>
