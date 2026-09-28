@@ -1,4 +1,5 @@
 "use client";
+import AuthLoading from "./auth-loading";
 import {
   useState,
   useEffect,
@@ -153,6 +154,8 @@ export default function Workspace({
     >(null),
     [editing, setEditing] = useState<Macro | undefined>(),
     [busy, setBusy] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(configured && !forceAuth);
+  const [googlePending, setGooglePending] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">(initialAuthMode),
     [authError, setAuthError] = useState(""),
     [needsWorkspace, setNeedsWorkspace] = useState(false);
@@ -183,6 +186,7 @@ export default function Workspace({
   async function api(path: string, method = "GET", body?: unknown) {
     const response = await fetch("/api/backend/" + path, {
       method,
+      signal: AbortSignal.timeout(30000),
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -210,7 +214,7 @@ export default function Workspace({
     }
   }
   useEffect(() => {
-    if (configured) reload().catch(() => setReady(false));
+    if (configured && !forceAuth) reload().catch(() => setReady(false)).finally(() => setCheckingSession(false));
   }, [configured]);
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
@@ -240,6 +244,7 @@ export default function Workspace({
     const values = Object.fromEntries(new FormData(e.currentTarget));
     try {
       const r = await fetch("/api/auth/" + authMode, {
+        signal: AbortSignal.timeout(30000),
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -250,9 +255,11 @@ export default function Workspace({
         setAuthError("Check your email to confirm your account, then sign in.");
         setAuthMode("login");
       } else {
-        await api("auth/provision", "POST", {
-          name: values.workspace || "My workspace",
-        });
+        if (authMode === "signup") {
+          await api("auth/provision", "POST", {
+            name: values.workspace || "My workspace",
+          });
+        }
         await reload();
       }
     } catch (e) {
@@ -460,7 +467,21 @@ export default function Workspace({
       notify((e as Error).message);
     }
   }
+  useEffect(() => {
+    const reset = () => setGooglePending(false);
+    window.addEventListener("pageshow", reset);
+    return () => window.removeEventListener("pageshow", reset);
+  }, []);
+  useEffect(() => {
+    if (!googlePending) return;
+    const timer = window.setTimeout(() => {
+      setGooglePending(false);
+      setAuthError("Google is taking longer than expected. Please try again if the sign-in page does not open.");
+    }, 20000);
+    return () => window.clearTimeout(timer);
+  }, [googlePending]);
   const isOwner = ["owner", "admin"].includes(data.user.role);
+  if (checkingSession) return <AuthLoading />;
   if (needsWorkspace)
     return (
       <main className="auth-form" style={{ paddingTop: 90 }}>
@@ -505,6 +526,7 @@ export default function Workspace({
   if (!ready)
     return (
       <main className="auth-shell">
+        {(busy || googlePending) && <AuthLoading message={googlePending ? "Connecting to Google…" : authMode === "signup" ? "Creating your account…" : "Signing you in…"} />}
         <div className="auth-story">
           <Logo />
           <div>
@@ -587,7 +609,8 @@ export default function Workspace({
           </form>
           <button
             className="button secondary full"
-            onClick={() => window.location.assign("/api/auth/google")}
+            disabled={busy || googlePending}
+            onClick={() => { setGooglePending(true); window.location.assign("/api/auth/google"); }}
           >
             Continue with Google
           </button>

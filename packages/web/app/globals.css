@@ -2495,3 +2495,15 @@ dialog > .muted {
 .integration-card p {
   color: #7e8d72;
 }
+
+/* Authentication feedback stays visible through session checks and navigation. */
+.auth-loading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#f5f8f4;padding:24px;pointer-events:all}
+.auth-loading-card{width:min(100%,400px);text-align:center;color:#203c2e}
+.auth-loading-brand{font-size:26px;font-weight:800;letter-spacing:-1px}
+.auth-loading-brand span{color:#8caf35}
+.auth-loading-art{overflow:hidden;border-radius:28px;margin:28px auto;width:min(100%,320px);background:#afeadd}
+.auth-loading-art img{display:block;width:100%;height:auto}
+.auth-loading-art .auth-loading-still{display:none}
+.auth-loading-card h2{font-size:22px;letter-spacing:-.5px;margin:0 0 12px}
+.auth-loading-card p{font-size:14px;color:#607466;margin:0}
+@media(prefers-reduced-motion:reduce){.auth-loading-art .auth-loading-motion{display:none}.auth-loading-art .auth-loading-still{display:block}}
