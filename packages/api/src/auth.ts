@@ -10,6 +10,7 @@ import {
 import { Request } from "express";
 import { createHash } from "node:crypto";
 import { serviceDb } from "./config";
+import { isGoogleAdministrator } from "@draftpilot/shared";
 export type Principal = {
   id: string;
   email: string;
@@ -110,11 +111,12 @@ export class AuthGuard implements CanActivate {
         throw new ForbiddenException("Account suspended. Contact support.");
     }
     let aal2 = false;
+    let claims: { aal?: string; amr?: { method?: string }[] } = {};
     try {
-      aal2 =
-        JSON.parse(
+      claims = JSON.parse(
           Buffer.from(token.split(".")[1] || "", "base64url").toString(),
-        ).aal === "aal2";
+        );
+      aal2 = claims.aal === "aal2";
     } catch {}
     req.principal = {
       id: user.id,
@@ -122,7 +124,7 @@ export class AuthGuard implements CanActivate {
       teamId: profile?.team_id || "",
       role: profile?.role || "member",
       extension,
-      platformAdmin: !extension && user.app_metadata?.platform_admin === true,
+      platformAdmin: !extension && isGoogleAdministrator(user, claims),
       aal2,
     };
     req.bearer = token;

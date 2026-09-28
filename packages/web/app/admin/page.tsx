@@ -1,11 +1,10 @@
 import AdminConsole from "@/components/admin-console";
-export default function AdminPage() {
-  const connected = Boolean(
-    process.env.SUPABASE_URL &&
-    process.env.SUPABASE_ANON_KEY &&
-    process.env.API_INTERNAL_URL,
-  );
-  return (
-    <AdminConsole demo={!connected && process.env.DRAFTPILOT_DEMO === "1"} />
-  );
+import { notFound, redirect } from "next/navigation";
+import { adminSession } from "@/lib/admin-session";
+export const metadata = { robots: { index: false, follow: false } };
+export default async function AdminPage() {
+  const session = await adminSession();
+  if (!session) notFound();
+  if (!session.aal2) redirect("/admin/verify");
+  return <AdminConsole demo={false} />;
 }

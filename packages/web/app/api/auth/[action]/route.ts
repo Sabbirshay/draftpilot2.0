@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { oauthClient } from "@/lib/oauth-client";
 import { z } from "zod";
+import { isGoogleAdministrator } from "@draftpilot/shared";
 import {
   authClient,
   cookieOptions,
@@ -129,6 +130,11 @@ export async function POST(
       const refresh = jar.get("dp_refresh")?.value;
       if (!token || !refresh)
         return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+      const verified = await client.auth.getUser(token);
+      let claims = {};
+      try { claims = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString()); } catch {}
+      if (verified.error || !verified.data.user || !isGoogleAdministrator(verified.data.user, claims))
+        return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
       await client.auth.setSession({
         access_token: token,
         refresh_token: refresh,
@@ -145,6 +151,9 @@ export async function POST(
         return NextResponse.json({ factorId: factor.id });
       }
       if (raw.action === "enroll") {
+        const factors = await client.auth.mfa.listFactors();
+        if (factors.error || factors.data.totp.some(f => f.status === "verified"))
+          return NextResponse.json({ error: "Use your existing authenticator. Contact support if you lost access." }, { status: 400 });
         const { data, error } = await client.auth.mfa.enroll({
           factorType: "totp",
           friendlyName: "DraftPilot authenticator",
@@ -260,11 +269,15 @@ export async function GET(
     },
   );
   if (action === "google") {
+    if (new URL(request.url).searchParams.get("admin") === "1")
+      jar.set("dp_admin_login", "1", { ...cookieOptions, maxAge: 600 });
+    else jar.delete("dp_admin_login");
     const { data, error } = await client.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: origin + "/api/auth/callback",
         skipBrowserRedirect: true,
+        queryParams: { prompt: "select_account" },
       },
     });
     if (error || !data.url)
@@ -283,5 +296,11 @@ export async function GET(
   if (error || !data.session)
     return NextResponse.redirect(origin + "/login?auth=failed");
   await setSession(data.session);
+  const adminLogin = jar.get("dp_admin_login")?.value === "1";
+  jar.delete("dp_admin_login");
+  if (adminLogin) {
+    const claims = JSON.parse(Buffer.from(data.session.access_token.split(".")[1], "base64url").toString());
+    return NextResponse.redirect(origin + (isGoogleAdministrator(data.user, claims) ? "/admin/verify" : "/admin/sign-in?access=not-enabled"));
+  }
   return NextResponse.redirect(origin + "/app");
 }

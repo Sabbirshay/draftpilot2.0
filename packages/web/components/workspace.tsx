@@ -725,7 +725,7 @@ export default function Workspace({
             Help & resources
             <ArrowUpRight size={15} />
           </button>
-          {(demo || data.platformAdmin) && (
+          {!demo && data.platformAdmin && (
             <a className="nav-item" href="/admin">
               <ShieldCheck size={18} />
               Control center

@@ -57,3 +57,4 @@ export type Workspace = {
   members: { id: string; email: string; role: string; full_name?: string }[];
 };
 export { scrubPII, cleanDraft, fallbackDraft, rankSources } from "./privacy";
+export { isGoogleAdministrator } from "./admin-policy";

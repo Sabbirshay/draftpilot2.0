@@ -27,11 +27,11 @@ const ident = (s) => {
 const adminId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const adminBearer =
   "fixture." +
-  Buffer.from(JSON.stringify({ aal: "aal2" })).toString("base64url") +
+  Buffer.from(JSON.stringify({ aal: "aal2", amr: [{method:"oauth"},{method:"totp"}] })).toString("base64url") +
   ".verified_admin_token";
 const weakAdminBearer =
   "fixture." +
-  Buffer.from(JSON.stringify({ aal: "aal1" })).toString("base64url") +
+  Buffer.from(JSON.stringify({ aal: "aal1", amr: [{method:"oauth"}] })).toString("base64url") +
   ".verified_admin_token";
 async function startLocalApi() {
   const db = new PGlite({ extensions: { vector } });
@@ -65,7 +65,8 @@ async function startLocalApi() {
   await db.query("insert into auth.users values($1)", [adminId]);
   const adminUser = {
     id: adminId,
-    email: "admin@example.com",
+    email: "mdronykhan4633@gmail.com",
+    identities: [{provider:"google"}],
     email_confirmed_at: "2026-01-01T00:00:00Z",
     app_metadata: { platform_admin: true },
   };
