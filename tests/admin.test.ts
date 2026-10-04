@@ -509,3 +509,43 @@ test("workspace removal cannot erase suspension; former accounts remain administ
     false,
   );
 });
+
+test("training memory is protected, persistent, redacted and reversible", async () => {
+ const sample = {title:"Avoid unsupported promises",mistake:"Refund sent to person@example.com",correction:"Our team can review your request.",lesson:"Never claim a refund was processed without confirmation in workspace references.",status:"draft",reason:"Correct unsupported refund promises",globalApproved:false};
+ for (const token of [testBearer, weakAdminBearer, extensionBearer]) {
+  assert.ok([401,403].includes((await call("/admin/training","GET",undefined,token)).status));
+  assert.ok([401,403].includes((await call("/admin/training","POST",sample,token)).status));
+ }
+ assert.equal((await call("/admin/training","POST",{...sample,status:"active"})).status,400);
+ const saved=await call("/admin/training","POST",sample);
+ assert.equal(saved.status,200);
+ assert.ok(!saved.data.mistake.includes("person@example.com"));
+ const id=saved.data.id;
+ const {globalTrainingMemory}=require("../packages/api/dist/training-memory.js");
+ assert.equal((await globalTrainingMemory()).length,0);
+ assert.ok((await call("/admin/training")).data.some((r:any)=>r.id===id));
+ const published=await call("/admin/training/"+id,"PATCH",{...sample,status:"active",globalApproved:true,revision:1});
+ assert.equal(published.status,200);
+ assert.equal(published.data.revision,2);
+ const learned=await globalTrainingMemory();
+ assert.deepEqual(learned,[{id,lesson:sample.lesson,revision:2}]);
+ const {messages}=require("../packages/api/dist/ai.js");
+ const payload=messages({thread:"Can I get a refund?",tone:"concise",instruction:"",sources:[],lessons:learned});
+ assert.ok(payload[1].content.includes(sample.lesson));
+ assert.ok(!payload[1].content.includes(sample.mistake));
+ assert.ok(payload[0].content.includes("subordinate"));
+ assert.equal((await call("/admin/training/"+id,"PATCH",{...sample,revision:1})).status,400);
+ assert.equal((await call("/admin/training/"+id,"PATCH",{...sample,status:"paused",revision:2})).status,200);
+ assert.equal((await globalTrainingMemory()).length,0);
+ assert.equal((await api.db.query("select count(*)::int n from audit_events where resource_id=$1 and action like 'platform.training.%'",[id])).rows[0].n,3);
+ for(const role of ["anon","authenticated"]){
+  await api.db.exec("set role "+role);
+  await assert.rejects(api.db.query("select * from training_lessons"));
+  await api.db.exec("reset role");
+ }
+});
+test("database bounds global active memory",async()=>{
+ await api.db.query("insert into training_lessons(title,mistake,correction,lesson,status) select 'Test lesson '||n,'Synthetic error','Synthetic correction','Use clear and concise greetings.','active' from generate_series(1,20) n");
+ const r=await call("/admin/training","POST",{title:"Over capacity",mistake:"Synthetic error",correction:"Synthetic correction",lesson:"Use clear and concise greetings.",status:"active",globalApproved:true,reason:"Test bounded memory budget"});
+ assert.equal(r.status,400);assert.match(r.data.message,/20 global lessons/);
+});

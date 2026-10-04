@@ -263,6 +263,9 @@ async function startLocalApi() {
               new URL(req.url, "http://localhost").searchParams,
             ),
           );
+        else if (req.path === "/admin/training" && req.method === "GET") result = await admin.training(req);
+        else if (req.path === "/admin/training" && req.method === "POST") result = await admin.createTraining(req, body);
+        else if (req.path.startsWith("/admin/training/") && req.method === "PATCH") result = await admin.updateTraining(req, req.path.split("/").pop(), body);
         else if (req.path === "/admin/pipeline" && req.method === "GET")
           result = await admin.pipeline(req);
         else if (req.path === "/admin/pipeline" && req.method === "PATCH")

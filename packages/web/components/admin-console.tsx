@@ -2,6 +2,7 @@
 import AdminCommandOverview, {
   type CommandMetrics,
 } from "./admin-command-overview";
+import AdminTraining from "./admin-training";
 import AdminPlayground from "./admin-playground";
 import ProviderControls from "./provider-controls";
 import { useEffect, useState, useRef } from "react";
@@ -1152,6 +1153,7 @@ export default function AdminConsole({ demo }: { demo: boolean }) {
                     </button>
                   </div>
                 </section>
+                <AdminTraining demo={demo} />
                 <AdminPlayground
                   demo={demo}
                   paused={

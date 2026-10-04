@@ -23,7 +23,7 @@ export default function AdminPlayground({
       const value = await r.json();
       if (!r.ok) throw new Error(value.message || "Test failed.");
       setResult(
-        `${value.liveProvider ? "Live provider" : "Local template"} · ${value.model || value.source} · ${value.durationMs} ms\n\n${value.draft}`,
+        `${value.liveProvider ? "Live provider" : "Local template"} · ${value.model || value.source} · ${value.durationMs} ms · ${value.memoryApplied?.length || 0} global lessons applied\n\n${value.draft}`,
       );
     } catch (e) {
       setResult((e as Error).message);

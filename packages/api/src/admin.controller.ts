@@ -12,6 +12,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { z } from "zod";
+import { trainingSchema, safeLessonContent } from "./training-memory";
 import { AuthGuard, AuthRequest, requirePlatformAdmin, rate } from "./auth";
 import { serviceDb, assertGenerationEnabled } from "./config";
 import { checked, parse, uuid } from "./validation";
@@ -36,6 +37,35 @@ const override = z
 @Controller("admin")
 @UseGuards(AuthGuard)
 export class AdminController {
+  @Get("training") async training(@Req() req: AuthRequest) {
+    requirePlatformAdmin(req);
+    return checked(await serviceDb().from("training_lessons").select("*").order("updated_at", { ascending: false }).limit(200));
+  }
+  @Post("training") async createTraining(@Req() req: AuthRequest, @Body() raw: unknown) {
+    return this.saveTraining(req, raw, null);
+  }
+  @Patch("training/:id") async updateTraining(@Req() req: AuthRequest, @Param("id") id: string, @Body() raw: unknown) {
+    requirePlatformAdmin(req);
+    return this.saveTraining(req, raw, uuid(id));
+  }
+  async saveTraining(req: AuthRequest, raw: unknown, id: string | null) {
+    requirePlatformAdmin(req);
+    await rate("training-write:" + req.principal.id, 20, 60);
+    const body = parse(trainingSchema, raw);
+    if (body.status === "active" && !body.globalApproved)
+      throw new BadRequestException("Confirm that the lesson is reusable and contains no customer-specific facts or confidential data.");
+    if (id && !body.revision) throw new BadRequestException("Reload the lesson before editing.");
+    const result = await serviceDb().rpc("save_training_lesson", {
+      p_actor: req.principal.id, p_id: id, p_revision: body.revision ?? 1,
+      p_content: safeLessonContent(body), p_status: body.status, p_reason: body.reason,
+    });
+    if (result.error?.message.includes("TRAINING_CONFLICT")) throw new BadRequestException("This lesson changed in another session. Reload before saving.");
+    if (result.error?.message.includes("TRAINING_ACTIVE_LIMIT")) throw new BadRequestException("Pause a lesson first: at most 20 global lessons can be active.");
+    if (result.error?.message.includes("TRAINING_CAPACITY")) throw new BadRequestException("Training memory holds 200 lessons. Edit an existing lesson.");
+    if (result.error?.message.includes("TRAINING_NOT_FOUND")) throw new NotFoundException("Lesson not found.");
+    return checked(result);
+  }
+
   @Get("providers") async providers(@Req() req: AuthRequest) {
     requirePlatformAdmin(req);
     const credentials = checked(
