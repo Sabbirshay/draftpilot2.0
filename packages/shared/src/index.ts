@@ -4,6 +4,7 @@ export const draftSchema = z.object({
   tone: z
     .enum(["friendly", "professional", "empathetic", "concise"])
     .optional(),
+  agentContext: z.string().trim().max(2000).default(""),
   instruction: z.string().trim().max(1000).default(""),
   macroId: z.string().uuid().optional(),
   channel: z

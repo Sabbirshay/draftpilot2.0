@@ -6,6 +6,15 @@ const el = <T extends HTMLElement>(id: string) =>
 const context = el<HTMLTextAreaElement>("context"),
   draft = el<HTMLTextAreaElement>("draft"),
   tone = el<HTMLSelectElement>("tone");
+const agentContext = el<HTMLTextAreaElement>("agent-context");
+let inputRevision = 0;
+function changed() { inputRevision++; el("result-section").hidden = true; }
+agentContext.addEventListener("input", changed);
+context.addEventListener("input", changed);
+tone.addEventListener("change", changed);
+el("clear-context").onclick = () => { agentContext.value = ""; changed(); };
+chrome.tabs.onActivated.addListener(() => { agentContext.value = ""; context.value = ""; changed(); });
+chrome.tabs.onUpdated.addListener((id, info) => { if (id === contextTabId && info.url) { agentContext.value = ""; context.value = ""; changed(); } });
 let contextTabId: number | undefined;
 let contextChannel: "gmail" | "outlook" = "gmail";
 function status(text: string) {
@@ -44,6 +53,8 @@ el("read").onclick = async () => {
     const id = await activeTab();
     const result = await chrome.tabs.sendMessage(id, { type: "READ_CONTEXT" });
     if (result.error) throw new Error(result.error);
+    agentContext.value = "";
+    changed();
     context.value = result.text;
     contextTabId = id;
     const tab = await chrome.tabs.get(id);
@@ -62,6 +73,7 @@ el("generate").onclick = async () => {
     status("Add a customer message first.");
     return;
   }
+  const version = inputRevision;
   button.disabled = true;
   button.textContent = "Preparing your draft…";
   try {
@@ -80,6 +92,7 @@ el("generate").onclick = async () => {
         },
         body: JSON.stringify({
           threadContent: clean.text,
+          agentContext: scrubPII(agentContext.value).text,
           ...(tone.value ? { tone: tone.value } : {}),
           channel: contextChannel,
           requestId: crypto.randomUUID(),
@@ -96,13 +109,14 @@ el("generate").onclick = async () => {
       text = fallbackDraft(clean.text, tone.value || "friendly");
       source = "Local template";
     }
+    if (version !== inputRevision) { status("Context changed. Generate a fresh draft."); return; }
     draft.value = text;
     el("source").textContent = source;
     el("sources").textContent = sources.length
       ? "Sources: " + sources.map((s) => s.name).join(", ")
       : "No policy source. Verify the reply before using it.";
     el("result-section").hidden = false;
-    status("Draft ready for your review.");
+    status(token ? "Draft ready using your context and available knowledge. Review before inserting." : "Local template only: context and workspace knowledge were not used. Connect your workspace for AI drafting.");
   } catch (e) {
     status((e as Error).message);
   } finally {

@@ -470,6 +470,22 @@ test("watcher preserves manually edited drafts and refuses unknown sender layout
   await other.close();
 });
 
+test("agent context reaches generation, invalidates stale drafts and clears on recapture",async()=>{
+ const page=await pageFor(zendesk,"zendesk.html");
+ await show(page);
+ const context=page.getByLabel("Your context · optional");
+ await context.fill("Diagnostics show E42, retry count 3. Contact jane@example.com.");
+ await generate(page);
+ const request=api.requests.filter((r:any)=>r.path==="/drafts/generate").at(-1);
+ expect(request.body.agentContext).toContain("E42, retry count 3");
+ expect(request.body.agentContext).not.toContain("jane@example.com");
+ await context.fill("Diagnostics now show the issue is resolved.");
+ await expect(page.getByLabel("Review your draft")).toBeHidden();
+ await page.getByRole("button",{name:"Capture selection / thread",exact:true}).click();
+ await expect(context).toHaveValue("");
+ await page.close();
+});
+
 test("revoked sessions cannot quietly fall back to ungrounded local generation", async () => {
   await fetch(api.url + "/extension/sessions", {
     method: "DELETE",
@@ -487,3 +503,4 @@ test("revoked sessions cannot quietly fall back to ungrounded local generation",
   await expect(page.getByLabel("Review your draft")).toBeHidden();
   await page.close();
 });
+

@@ -121,10 +121,12 @@ export class DraftsController {
         })),
       ];
       const clean = scrubPII(body.threadContent).text;
-      let sources: Source[] = rankSources(clean, all, 4);
+      const agentContext = scrubPII(body.agentContext).text;
+      const retrievalQuery = [clean, agentContext].filter(Boolean).join("\n");
+      let sources: Source[] = rankSources(retrievalQuery, all, 4);
       // When embeddings are configured, combine semantic matches with explicit macro selection.
       const vector = pipeline.ai_config.embeddings_enabled
-        ? await embed([clean])
+        ? await embed([retrievalQuery])
         : null;
       if (vector) {
         const matches = await db.rpc("match_document_chunks", {
@@ -161,6 +163,7 @@ export class DraftsController {
       const result = await generateReply(
         {
           thread: clean,
+          agentContext,
           tone,
           instruction: scrubPII(body.instruction).text,
           sources,

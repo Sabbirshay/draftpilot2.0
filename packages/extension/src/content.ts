@@ -161,6 +161,7 @@ if (!isolated.__draftpilotInstalled) {
     capturedKey = adapter.key();
     const clean = scrubPII(next.text);
     if (root) {
+      get<HTMLTextAreaElement>("agent-context").value = "";
       get<HTMLTextAreaElement>("context").value = clean.text;
       get("platform").textContent = adapter.label;
       status(
@@ -334,6 +335,7 @@ if (!isolated.__draftpilotInstalled) {
       const result = await rpc({
         type: "DP_GENERATE",
         text,
+        agentContext: scrubPII(get<HTMLTextAreaElement>("agent-context").value).text,
         tone: get<HTMLSelectElement>("tone").value,
         channel: adapter.id,
         requestId,
@@ -355,7 +357,7 @@ if (!isolated.__draftpilotInstalled) {
         ? "Local mode · no workspace KB"
         : "Workspace connected";
       get("result").hidden = false;
-      status("Draft ready. Choose your reply box if needed, then insert.");
+      status(result.local ? "Local template only: your context and workspace knowledge were not used. Connect your workspace for AI drafting." : "Draft ready using your context and available knowledge. Review, then insert.");
     } finally {
       busy = false;
       get<HTMLButtonElement>("generate").disabled = false;
@@ -383,6 +385,7 @@ if (!isolated.__draftpilotInstalled) {
         <label for="context">Customer message</label><textarea id="context" rows="4" maxlength="16000" placeholder="Select a message, or click Pick message and choose it on the page."></textarea>
         <label for="tone">Reply tone</label><select id="tone"><option value="">Workspace default</option><option value="friendly">Friendly</option><option value="professional">Professional</option><option value="empathetic">Empathetic</option><option value="concise">Concise</option></select>
         <div class="row"><button id="watch">Watch customer replies</button></div><small id="watch-state">Watching is off</small>
+        <label for="agent-context">Your context · optional</label><textarea id="agent-context" rows="3" maxlength="2000" placeholder="Example: Diagnostics show error E42. Reset attempted; issue persists. Mention the replacement reference provided by our team."></textarea><small>Findings and values for this reply only. Cleared when a new message is captured. Do not include passwords, payment details or secrets.</small><button id="clear-context" type="button">Clear context</button>
         <button id="generate" class="primary wide">Generate draft</button>
         <div id="result" hidden><label for="draft">Review your draft</label><small id="source"></small><textarea id="draft" rows="7" maxlength="12000"></textarea><p id="sources"></p><div class="row"><button id="pick-reply">Choose reply box</button><button id="insert" class="primary">Insert at chat box</button></div><small id="target">Uses a single empty editor, or the reply box you choose.</small></div>
         <p id="status" role="status" aria-live="polite"></p><button id="connect">Workspace connection</button><p><small>No automatic sending. Redaction can miss personal details.</small></p>`;
@@ -391,6 +394,7 @@ if (!isolated.__draftpilotInstalled) {
       bind("close", () => {
         stopWatching();
         invalidate();
+        get<HTMLTextAreaElement>("agent-context").value = "";
         host!.hidden = true;
         host!.style.setProperty("display", "none", "important");
         picking = null;
@@ -409,6 +413,9 @@ if (!isolated.__draftpilotInstalled) {
         );
       });
       bind("watch", toggleWatch);
+      const contextChanged = () => { stopWatching("Context updated. Generate a new draft to use your findings."); invalidate(); };
+      get("agent-context").addEventListener("input", contextChanged);
+      bind("clear-context", () => { get<HTMLTextAreaElement>("agent-context").value = ""; contextChanged(); });
       get("context").addEventListener("input", () => {
         stopWatching();
         invalidate();

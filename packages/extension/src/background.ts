@@ -95,6 +95,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     if (message.type !== "DP_GENERATE")
       throw new Error("Unsupported extension request.");
     if (
+      (message.agentContext !== undefined && (typeof message.agentContext !== "string" || message.agentContext.length > 2000)) ||
       typeof message.text !== "string" ||
       message.text.trim().length < 8 ||
       message.text.length > 16000 ||
@@ -122,6 +123,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         "/drafts/generate",
         {
           threadContent: clean,
+          agentContext: scrubPII(message.agentContext || "").text,
           ...(message.tone ? { tone: message.tone } : {}),
           channel: message.channel,
           requestId: message.requestId,
