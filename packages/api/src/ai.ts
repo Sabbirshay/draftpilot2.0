@@ -119,7 +119,7 @@ export async function generateReply(
               ? { temperature: policy?.temperature ?? 0.3 }
               : {}),
           }),
-          signal: AbortSignal.timeout(10000),
+          signal: AbortSignal.timeout(20000),
           redirect: "error",
         });
       const result = (await (policy?.managed
