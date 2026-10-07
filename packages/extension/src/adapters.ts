@@ -118,7 +118,7 @@ export const adapters: Adapter[] = [
     label: "Gmail",
     matches: () => location.hostname === "mail.google.com",
     capture: () => {
-      const result = captured(all(".a3s.aiL"));
+      const result = captured(all(".a3s").filter(el => !el.closest('[contenteditable="true"],[role="dialog"]')));
       return (
         result && {
           ...result,
@@ -155,11 +155,22 @@ export const adapters: Adapter[] = [
     key: () => location.href,
   },
 ];
+// Capture only explicitly marked customer bubbles inside one visible conversation.
+// Unknown layouts keep the selection / picker fallback instead of scraping the page.
+function captureIncoming(): Captured | null {
+  const scopes = all('[data-conversation-id],[data-session-id],[data-ticket-id],[role="log"]');
+  const roots = scopes.filter(el => !scopes.some(other => other !== el && other.contains(el)));
+  if (roots.length !== 1) return null;
+  const nodes = Array.from(roots[0].querySelectorAll<HTMLElement>(
+    '[data-sender="customer"],[data-sender="visitor"],[data-sender="user"],[data-author-type="customer"],[data-author-type="visitor"],[data-direction="incoming"],[data-direction="inbound"],[data-message-direction="incoming"],.message-incoming,.message--incoming,.message-inbound,.message--received,.message-customer,.message-visitor'
+  )).filter(el => visible(el) && !el.closest('[contenteditable="true"],[data-draftpilot-root]'));
+  return captured(nodes.filter(el => !nodes.some(other => other !== el && other.contains(el))));
+}
 export const generic: Adapter = {
   id: "other",
   label: "Universal capture",
   matches: () => true,
-  capture: () => null,
+  capture: () => captureIncoming(),
   editors: () =>
     all(
       'textarea,[contenteditable="true"],[contenteditable="plaintext-only"]',

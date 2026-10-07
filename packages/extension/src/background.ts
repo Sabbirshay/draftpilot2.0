@@ -1,12 +1,10 @@
+import {connectionToken, clearConnection, disconnectConnection} from "./connection";
 import { fallbackDraft, scrubPII } from "@draftpilot/shared/privacy";
 declare const __API_URL__: string;
 const tones = ["friendly", "professional", "empathetic", "concise"];
 const channels = ["gmail", "zendesk", "outlook", "intercom", "crisp", "mevrik", "other"];
 const active = new Map<number, number>();
-async function token() {
-  return (await chrome.storage.session.get("dp_token")).dp_token as
-    string | undefined;
-}
+const token = connectionToken;
 async function api(path: string, body: unknown, auth?: string) {
   const response = await fetch(__API_URL__ + path, {
     method: "POST",
@@ -21,7 +19,7 @@ async function api(path: string, body: unknown, auth?: string) {
   const result = await response.json();
   if (!response.ok) {
     if (response.status === 401)
-      await chrome.storage.session.remove("dp_token");
+      await clearConnection();
     throw new Error(
       result.message || "DraftPilot could not complete this request.",
     );
@@ -39,6 +37,7 @@ export async function show(tab: chrome.tabs.Tab, frameId = 0) {
   });
   await chrome.tabs.sendMessage(tab.id, { type: "SHOW_PANEL" }, { frameId });
 }
+void chrome.storage.local.setAccessLevel({accessLevel: "TRUSTED_CONTEXTS"});
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.session
     .setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" })
@@ -85,6 +84,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     return;
   const tabId = sender.tab.id;
   const run = async () => {
+    if (message.type === "DP_DISCONNECT") { await disconnectConnection(); return {ok: true}; }
     if (message.type === "DP_MODE") return { connected: !!(await token()) };
     if (message.type === "DP_CONNECT") {
       await chrome.tabs.create({
@@ -130,6 +130,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         },
         credential,
       );
+      if (await token() !== credential) throw new Error("Connection changed. Reconnect before generating.");
       if (typeof result.draft !== "string" || result.draft.length > 12000)
         throw new Error("Invalid draft response.");
       return {
@@ -154,4 +155,10 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
       }),
     );
   return true;
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.dp_token && !changes.dp_token.newValue) {
+    void chrome.tabs.query({}).then(tabs => Promise.allSettled(tabs.filter(t => t.id).map(t => chrome.tabs.sendMessage(t.id!, {type: "DP_DISCONNECTED"}))));
+  }
 });

@@ -1,3 +1,4 @@
+import {connectionToken, saveConnection, disconnectConnection} from "./connection";
 import { scrubPII, fallbackDraft } from "@draftpilot/shared/privacy";
 import "./style.css";
 declare const __API_URL__: string;
@@ -39,10 +40,7 @@ async function activeTab() {
     throw new Error("Open Gmail or Outlook web mail in the active tab.");
   return tab.id;
 }
-async function getToken() {
-  return (await chrome.storage.session.get("dp_token")).dp_token as
-    string | undefined;
-}
+const getToken = connectionToken;
 async function updateMode() {
   el("mode").textContent = (await getToken())
     ? "Workspace connected"
@@ -51,6 +49,7 @@ async function updateMode() {
 el("read").onclick = async () => {
   try {
     const id = await activeTab();
+    await chrome.scripting.executeScript({target: {tabId: id}, files: ["content.js"]});
     const result = await chrome.tabs.sendMessage(id, { type: "READ_CONTEXT" });
     if (result.error) throw new Error(result.error);
     agentContext.value = "";
@@ -109,6 +108,7 @@ el("generate").onclick = async () => {
       text = fallbackDraft(clean.text, tone.value || "friendly");
       source = "Local template";
     }
+    if (token !== await getToken()) throw new Error("Connection changed. Generate a fresh draft after connecting.");
     if (version !== inputRevision) { status("Context changed. Generate a fresh draft."); return; }
     draft.value = text;
     el("source").textContent = source;
@@ -161,7 +161,7 @@ el("connect").onclick = async () => {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Unable to connect.");
-    await chrome.storage.session.set({ dp_token: result.token });
+    await saveConnection(result.token);
     el<HTMLInputElement>("code").value = "";
     await updateMode();
     status("Workspace connected. Your token is limited to drafting.");
@@ -170,10 +170,15 @@ el("connect").onclick = async () => {
   }
 };
 el("disconnect").onclick = async () => {
-  await chrome.storage.session.remove("dp_token");
-  await updateMode();
-  status(
-    "Disconnected locally. Revoke the session in your web workspace to invalidate it on the server.",
-  );
+  const button = el<HTMLButtonElement>("disconnect"); button.disabled = true;
+  try {
+    await disconnectConnection();
+    agentContext.value = ""; context.value = ""; draft.value = ""; changed();
+    await updateMode(); status("Disconnected. This connection has been revoked on the server.");
+  } catch (error) { status((error as Error).message); }
+  finally {button.disabled = false;}
 };
+chrome.storage.onChanged.addListener((changes, area) => {
+ if (area === "local" && changes.dp_token) { changed(); void updateMode(); }
+});
 updateMode().catch(() => status("Unable to load extension session."));

@@ -162,7 +162,7 @@ export default function Workspace({
   const [pairingCode, setPairingCode] = useState(""),
     [inviteUrl, setInviteUrl] = useState(""),
     [extensionSessions, setExtensionSessions] = useState<
-      { id: string; name: string; expires_at: string }[]
+      { id: string; name: string; expires_at: string | null }[]
     >([]);
   const [filter, setFilter] = useState("All"),
     [historyItem, setHistoryItem] = useState<Draft | null>(null),
@@ -1601,8 +1601,7 @@ export default function Workspace({
                   {extensionSessions.map((session) => (
                     <div key={session.id}>
                       <span>
-                        {session.name} · expires{" "}
-                        {new Date(session.expires_at).toLocaleDateString()}
+                        {session.name} · {session.expires_at ? "expires " + new Date(session.expires_at).toLocaleDateString() : "Connected until disconnected"}
                       </span>
                       <button
                         className="text-button"

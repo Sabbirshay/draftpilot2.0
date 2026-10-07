@@ -11,10 +11,11 @@ import {
 
 // Content scripts execute in Chrome's isolated world, not the page's JS context.
 const isolated = globalThis as typeof globalThis & {
-  __draftpilotInstalled?: boolean;
+  __draftpilotInstalled?: string | boolean;
 };
-if (!isolated.__draftpilotInstalled) {
-  isolated.__draftpilotInstalled = true;
+if (isolated.__draftpilotInstalled !== "1.5.0") {
+  document.querySelectorAll("[data-draftpilot-root]").forEach(el => el.remove());
+  isolated.__draftpilotInstalled = "1.5.0";
   let adapter: Adapter = adapterForPage();
   let capture: Captured | null = null,
     capturedKey = "",
@@ -388,7 +389,7 @@ if (!isolated.__draftpilotInstalled) {
         <label for="agent-context">Your context · optional</label><textarea id="agent-context" rows="3" maxlength="2000" placeholder="Example: Diagnostics show error E42. Reset attempted; issue persists. Mention the replacement reference provided by our team."></textarea><small>Findings and values for this reply only. Cleared when a new message is captured. Do not include passwords, payment details or secrets.</small><button id="clear-context" type="button">Clear context</button>
         <button id="generate" class="primary wide">Generate draft</button>
         <div id="result" hidden><label for="draft">Review your draft</label><small id="source"></small><textarea id="draft" rows="7" maxlength="12000"></textarea><p id="sources"></p><div class="row"><button id="pick-reply">Choose reply box</button><button id="insert" class="primary">Insert at chat box</button></div><small id="target">Uses a single empty editor, or the reply box you choose.</small></div>
-        <p id="status" role="status" aria-live="polite"></p><button id="connect">Workspace connection</button><p><small>No automatic sending. Redaction can miss personal details.</small></p>`;
+        <p id="status" role="status" aria-live="polite"></p><button id="disconnect" type="button">Disconnect workspace</button><button id="connect">Workspace connection</button><p><small>No automatic sending. Redaction can miss personal details.</small></p>`;
       root.append(panel);
       document.documentElement.append(host);
       bind("close", () => {
@@ -406,6 +407,16 @@ if (!isolated.__draftpilotInstalled) {
       });
       bind("pick-message", () => pick("message"));
       bind("pick-reply", () => pick("reply"));
+      bind("disconnect", async () => {
+        const button = get<HTMLButtonElement>("disconnect"); button.disabled = true;
+        try {
+          await rpc({type: "DP_DISCONNECT"});
+          stopWatching(); invalidate();
+          get<HTMLTextAreaElement>("agent-context").value = "";
+          get("mode").textContent = "Disconnected";
+          status("Disconnected. This connection is revoked on the server.");
+        } finally {button.disabled = false;}
+      });
       bind("connect", async () => {
         await rpc({ type: "DP_CONNECT" });
         status(
@@ -446,6 +457,7 @@ if (!isolated.__draftpilotInstalled) {
     host.style.setProperty("display", "block", "important");
     adapter = adapterForPage();
     get("platform").textContent = adapter.label;
+    try { current(); } catch { capture = null; }
     if (!capture) {
       try {
         read();
@@ -469,6 +481,11 @@ if (!isolated.__draftpilotInstalled) {
     )
       return;
     try {
+      if (message.type === "DP_DISCONNECTED") {
+        stopWatching(); invalidate();
+        if (root) { get("mode").textContent = "Disconnected"; get<HTMLTextAreaElement>("agent-context").value = ""; }
+        respond({ok: true});
+      }
       if (message.type === "SHOW_PANEL") {
         show();
         respond({ ok: true });

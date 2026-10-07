@@ -52,25 +52,19 @@ export class AuthGuard implements CanActivate {
       extension = true;
       const { data: t, error } = await db
         .from("extension_tokens")
-        .select("user_id,team_id,created_at")
+        .select("user_id,team_id,created_at,expires_at")
         .eq("token_hash", hash(token))
         .is("revoked_at", null)
-        .gt("expires_at", new Date().toISOString())
         .maybeSingle();
-      if (error || !t)
+      if (error) throw new ServiceUnavailableException("Connection verification unavailable. Please retry.");
+      if (!t || (t.expires_at && Date.parse(t.expires_at) <= Date.now()))
         throw new UnauthorizedException(
           "Extension session expired. Reconnect from your workspace.",
         );
       const result = await db.auth.admin.getUserById(t.user_id);
+      if (result.error) throw new ServiceUnavailableException("Account verification unavailable. Please retry.");
       user = result.data.user;
       if (!user) throw new UnauthorizedException();
-      if (
-        user.last_sign_in_at &&
-        Date.parse(user.last_sign_in_at) > Date.parse(t.created_at)
-      )
-        throw new UnauthorizedException(
-          "Your account signed in again. Reconnect the extension from your workspace.",
-        );
     } else {
       const result = await db.auth.getUser(token);
       if (result.error || !result.data.user)

@@ -50,7 +50,14 @@ export class PlatformController {
     });
     if (error)
       throw new BadRequestException("Pairing code is invalid or expired.");
-    return { token, expiresIn: 7 * 86400 };
+    return { token, expiresIn: null };
+  }
+  @Post("extension/disconnect") async disconnect(@Req() req: Request) {
+    const token = req.headers.authorization?.match(/^Bearer (dp_[A-Za-z0-9_-]{40,100})$/)?.[1];
+    if (!token) throw new BadRequestException("Invalid extension connection.");
+    await rate("extension-disconnect:" + req.ip, 20, 60);
+    checked(await serviceDb().from("extension_tokens").update({revoked_at: new Date().toISOString()}).eq("token_hash", hash(token)).is("revoked_at", null));
+    return {ok: true};
   }
   @Post("internal/retention") async retention(@Req() req: Request) {
     const expected = process.env.RETENTION_JOB_SECRET || "";

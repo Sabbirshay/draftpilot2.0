@@ -18,6 +18,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 // @ts-ignore JS harness deliberately replaces only hosted Auth/PostgREST transport.
 import { startLocalApi, testBearer } from "../helpers/local-api.cjs";
+let launchOptions: any;
 let api: any,
   browser: BrowserContext,
   worker: Worker,
@@ -65,6 +66,7 @@ test.beforeAll(async () => {
   manifest.host_permissions.push(
     api.url + "/*",
     "https://acme.zendesk.com/*",
+    "https://mail.google.com/*",
     "https://support.example.test/*",
     "https://app.crisp.chat/*",
     "https://outlook.office.com/*",
@@ -73,7 +75,7 @@ test.beforeAll(async () => {
     "https://inbox.mevrik.com/*",
   );
   await writeFile(join(extension, "manifest.json"), JSON.stringify(manifest));
-  browser = await chromium.launchPersistentContext(join(temp, "profile"), {
+  launchOptions = {
     headless: true,
     channel: "chromium",
     ignoreDefaultArgs: ["--disable-extensions"],
@@ -92,7 +94,8 @@ test.beforeAll(async () => {
       `--load-extension=${extension}`,
     ],
     viewport: { width: 1440, height: 1000 },
-  });
+  };
+  browser = await chromium.launchPersistentContext(join(temp, "profile"), launchOptions);
   worker =
     browser.serviceWorkers()[0] ||
     (await browser.waitForEvent("serviceworker"));
@@ -111,6 +114,8 @@ test.beforeAll(async () => {
   await expect(settings.locator("#mode")).toHaveText("Workspace connected");
   await settings.close();
 });
+// Isolate per-user request windows in the local fixture; production limits remain unchanged.
+test.beforeEach(async () => { await api.db.query("delete from public.rate_limits"); });
 test.afterAll(async () => {
   await browser?.close();
   await api?.close();
@@ -183,6 +188,16 @@ test("Zendesk: uploaded knowledge → actual API/quota → workspace tone → re
   expect(stored.rows[0].generated_draft).toContain(policy);
   expect(stored.rows[0].channel).toBe("zendesk");
   await page.screenshot({ path: "test-results/visual/universal-zendesk.png" });
+  await page.close();
+});
+test("Gmail captures an opened email automatically and inserts a grounded reply", async () => {
+  const page = await pageFor("https://mail.google.com/mail/u/0/#inbox/37", "gmail.html");
+  await show(page);
+  await expect(page.getByLabel("Customer message")).toHaveValue(/return my unused order/);
+  await expect(page.getByLabel("Customer message")).not.toHaveValue(/Hidden unrelated/);
+  await generate(page);
+  await page.getByRole("button", {name:"Insert at chat box",exact:true}).click();
+  await expect(page.getByRole("textbox", {name:"Email reply"})).toContainText("37 days");
   await page.close();
 });
 for (const host of [
@@ -486,6 +501,21 @@ test("agent context reaches generation, invalidates stale drafts and clears on r
  await page.close();
 });
 
+test("pairing survives a browser restart and automatic customer capture works", async () => {
+  await browser.close();
+  browser = await chromium.launchPersistentContext(join(temp, "profile"), launchOptions);
+  worker = browser.serviceWorkers()[0] || await browser.waitForEvent("serviceworker");
+  const settings = await browser.newPage();
+  await settings.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+  await expect(settings.locator("#mode")).toHaveText("Workspace connected");
+  expect(await worker.evaluate(async () => !!(await chrome.storage.session.get("dp_token")).dp_token)).toBe(false);
+  await settings.close();
+  const page = await pageFor("https://app.crisp.chat/website/fixture/inbox/", "live-inbox.html");
+  await show(page);
+  await expect(page.getByLabel("Customer message")).not.toHaveValue("");
+  await page.close();
+});
+
 test("revoked sessions cannot quietly fall back to ungrounded local generation", async () => {
   await fetch(api.url + "/extension/sessions", {
     method: "DELETE",
@@ -504,3 +534,20 @@ test("revoked sessions cannot quietly fall back to ungrounded local generation",
   await page.close();
 });
 
+
+test("disconnect button revokes the persistent credential on the server", async () => {
+ const pair = await fetch(api.url + "/extension/pair", {method: "POST", headers: {Authorization: "Bearer " + testBearer}}).then(r => r.json());
+ const settings = await browser.newPage();
+ await settings.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+ await settings.locator("details").evaluate(el => el.setAttribute("open", ""));
+ await settings.getByLabel("Pairing code").fill(pair.code);
+ await settings.getByRole("button", {name: "Connect securely"}).click();
+ await expect(settings.locator("#mode")).toHaveText("Workspace connected");
+ const page=await pageFor(zendesk,"zendesk.html"); await show(page);
+ await page.getByRole("button", {name:"Disconnect workspace",exact:true}).click();
+ await expect(page.getByRole("status")).toContainText("revoked on the server");
+ await expect(settings.locator("#mode")).toHaveText("Local mode");
+ const active = await api.db.query("select count(*)::int n from extension_tokens where revoked_at is null");
+ expect(active.rows[0].n).toBe(0);
+ await page.close(); await settings.close();
+});

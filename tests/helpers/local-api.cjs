@@ -252,6 +252,7 @@ async function startLocalApi() {
       let result;
       if (req.path === "/extension/exchange")
         result = await platform.exchange(req, body);
+      else if (req.path === "/extension/disconnect") result = await platform.disconnect(req);
       else {
         await guard.canActivate({
           switchToHttp: () => ({ getRequest: () => req }),
@@ -327,6 +328,7 @@ async function startLocalApi() {
     db,
     team,
     requests,
+    user,
     close: async () => {
       await new Promise((resolve) => server.close(resolve));
       await db.close();
