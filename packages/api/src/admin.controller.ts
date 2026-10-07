@@ -173,7 +173,7 @@ export class AdminController {
       fetch,
       {
         ...aiConfigSchema.parse({}),
-        max_output_tokens: 256,
+        max_output_tokens: 512,
         fallback_enabled: false,
         managed: true,
         credential: {

@@ -144,7 +144,7 @@ test("model must be catalogued and live-tested before global activation", async 
   const outgoing = JSON.parse(
     calls.find((c) => c.url.endsWith("/chat/completions")).body,
   );
-  assert.equal(outgoing.max_completion_tokens, 256);
+  assert.equal(outgoing.max_completion_tokens, 512);
 });
 test("web credentials cannot generate; extension uses the global model and knowledge", async () => {
   const body = {
