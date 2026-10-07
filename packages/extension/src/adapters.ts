@@ -60,7 +60,10 @@ function outlookPane(): HTMLElement | null {
   const unique = main.filter(
     (el) => !main.some((other) => other !== el && other.contains(el)),
   );
-  return unique.length === 1 ? unique[0] : null;
+  const reading = unique.filter(pane => Array.from(pane.querySelectorAll<HTMLElement>(
+    '[data-testid="message-body"],[role="document"],.allowTextSelection'
+  )).some(body => visible(body) && !body.closest('[role="listbox"],[role="option"],[contenteditable="true"],[contenteditable="plaintext-only"]') && !!body.innerText.trim()));
+  return reading.length === 1 ? reading[0] : null;
 }
 function outlookBodies(): HTMLElement[] {
   const pane = outlookPane();
@@ -91,6 +94,7 @@ const outlook: Adapter = {
   matches: () =>
     [
       "outlook.office.com",
+      "outlook.cloud.microsoft",
       "outlook.office365.com",
       "outlook.live.com",
     ].includes(location.hostname) && /^\/mail(?:\/|$)/.test(location.pathname),

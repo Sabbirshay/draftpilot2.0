@@ -13,9 +13,9 @@ import {
 const isolated = globalThis as typeof globalThis & {
   __draftpilotInstalled?: string | boolean;
 };
-if (isolated.__draftpilotInstalled !== "1.5.0") {
+if (isolated.__draftpilotInstalled !== "1.5.1") {
   document.querySelectorAll("[data-draftpilot-root]").forEach(el => el.remove());
-  isolated.__draftpilotInstalled = "1.5.0";
+  isolated.__draftpilotInstalled = "1.5.1";
   let adapter: Adapter = adapterForPage();
   let capture: Captured | null = null,
     capturedKey = "",
@@ -34,6 +34,42 @@ if (isolated.__draftpilotInstalled !== "1.5.0") {
     due = 0,
     lastRun = 0;
   let draftDirty = false;
+  let automaticCapture = true;
+  let observedCapture = "";
+  let captureDue = 0;
+  const captureSignature = (a: Adapter, c: Captured | null) => a.key() + "|" + (c?.text || "");
+  // Inbox apps render asynchronously and replace conversations without reloading.
+  // Capture stays local; only Generate / Watch sends a request to the API.
+  function refreshCapture() {
+    if (!root || !host || host.hidden || document.hidden || picking || !automaticCapture || watcher) return;
+    const nextAdapter = adapterForPage();
+    const next = nextAdapter.capture();
+    const signature = captureSignature(nextAdapter, next);
+    if (signature !== observedCapture) {
+      observedCapture = signature;
+      captureDue = Date.now() + 600;
+      return;
+    }
+    if (Date.now() < captureDue) return;
+    if (capture && capturedKey === nextAdapter.key() && next?.text === capture.text && capture.node?.isConnected) return;
+    if (draftDirty) {
+      generatedRevision = -1;
+      status("The customer conversation changed. Your edited draft is preserved. Capture the current message to continue.");
+      return;
+    }
+    if (!next) {
+      if (capture) {
+        invalidate(); capture = null; target = null;
+        get<HTMLTextAreaElement>("context").value = "";
+        get<HTMLTextAreaElement>("agent-context").value = "";
+      }
+      status("Waiting for an open customer message. For an unsupported layout, use Pick message once.");
+      return;
+    }
+    try { useCapture(next); status("Customer message captured automatically. Ready to generate."); }
+    catch (error) { status((error as Error).message); }
+  }
+  setInterval(refreshCapture, 400);
   function stopWatching(message?: string) {
     watcher = null;
     pending = null;
@@ -104,7 +140,16 @@ if (isolated.__draftpilotInstalled !== "1.5.0") {
         "Connect your workspace before watching so drafts can use its knowledge base and tone.",
       );
     current();
-    watcher = watchSource(capture.node);
+    if (adapter.id === "gmail" || adapter.id === "outlook") {
+      const emailAdapter = adapter;
+      const key = location.href;
+      watcher = {
+        key: () => emailAdapter.key(),
+        valid: () => location.href === key,
+        latest: () => emailAdapter.capture(),
+        signature: (value) => value.text,
+      };
+    } else watcher = watchSource(capture.node);
     lastSeen = "";
     lastRun = 0;
     draftDirty = false;
@@ -173,6 +218,8 @@ if (isolated.__draftpilotInstalled !== "1.5.0") {
   }
   function read() {
     selection();
+    const manualSelection = !!(selected && selected.node?.isConnected && selected.fingerprint === fingerprint(selected.node));
+    if (manualSelection) automaticCapture = false;
     const next =
       selected &&
       selected.node?.isConnected &&
@@ -403,9 +450,10 @@ if (isolated.__draftpilotInstalled !== "1.5.0") {
       });
       bind("read", () => {
         stopWatching();
+        automaticCapture = true;
         read();
       });
-      bind("pick-message", () => pick("message"));
+      bind("pick-message", () => { automaticCapture = false; pick("message"); });
       bind("pick-reply", () => pick("reply"));
       bind("disconnect", async () => {
         const button = get<HTMLButtonElement>("disconnect"); button.disabled = true;
@@ -428,6 +476,7 @@ if (isolated.__draftpilotInstalled !== "1.5.0") {
       get("agent-context").addEventListener("input", contextChanged);
       bind("clear-context", () => { get<HTMLTextAreaElement>("agent-context").value = ""; contextChanged(); });
       get("context").addEventListener("input", () => {
+        automaticCapture = false;
         stopWatching();
         invalidate();
       });
@@ -455,6 +504,7 @@ if (isolated.__draftpilotInstalled !== "1.5.0") {
     if (previousFocus && editable(previousFocus)) target = previousFocus;
     host.hidden = false;
     host.style.setProperty("display", "block", "important");
+    automaticCapture = true;
     adapter = adapterForPage();
     get("platform").textContent = adapter.label;
     try { current(); } catch { capture = null; }

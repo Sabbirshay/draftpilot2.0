@@ -49,7 +49,7 @@ await writeFile(
     {
       manifest_version: 3,
       name: "DraftPilot — Customer Support Copilot",
-      version: "1.5.0",
+      version: "1.5.1",
       description:
         "Capture customer messages and insert reviewed replies across Gmail, Outlook, Zendesk and regular web pages. Never sends automatically.",
       permissions: [
@@ -62,6 +62,7 @@ await writeFile(
       host_permissions: [
         "https://mail.google.com/*",
         "https://outlook.office.com/*",
+        "https://outlook.cloud.microsoft/*",
         "https://outlook.office365.com/*",
         "https://outlook.live.com/*",
         parsed.origin + "/*",
@@ -74,6 +75,7 @@ await writeFile(
           matches: [
             "https://mail.google.com/*",
             "https://outlook.office.com/mail/*",
+            "https://outlook.cloud.microsoft/mail/*",
             "https://outlook.office365.com/mail/*",
             "https://outlook.live.com/mail/*",
           ],

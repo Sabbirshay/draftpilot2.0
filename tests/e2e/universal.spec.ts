@@ -61,6 +61,8 @@ test.beforeAll(async () => {
   const manifest = JSON.parse(
     await readFile(join(extension, "manifest.json"), "utf8"),
   );
+  expect(manifest.host_permissions).toContain("https://outlook.cloud.microsoft/*");
+  expect(manifest.content_scripts.flatMap((script: any) => script.matches)).toContain("https://outlook.cloud.microsoft/mail/*");
   // Fixture-only access simulates the host permission granted by a real toolbar action.
   // Release manifest retains activeTab and never includes these fixture origins.
   manifest.host_permissions.push(
@@ -70,6 +72,7 @@ test.beforeAll(async () => {
     "https://support.example.test/*",
     "https://app.crisp.chat/*",
     "https://outlook.office.com/*",
+    "https://outlook.cloud.microsoft/*",
     "https://outlook.office365.com/*",
     "https://outlook.live.com/*",
     "https://inbox.mevrik.com/*",
@@ -202,6 +205,7 @@ test("Gmail captures an opened email automatically and inserts a grounded reply"
 });
 for (const host of [
   "outlook.office.com",
+  "outlook.cloud.microsoft",
   "outlook.office365.com",
   "outlook.live.com",
 ]) {
@@ -237,6 +241,45 @@ for (const host of [
     await page.close();
   });
 }
+test("Outlook finds the reading pane among multiple main regions without capturing inbox previews", async () => {
+  const page = await pageFor("https://outlook.live.com/mail/0/inbox/id/multiple", "outlook.html");
+  await page.evaluate(() => {
+    document.querySelector("[data-app-section]")!.removeAttribute("data-app-section");
+    const list = document.querySelector('[role="listbox"]')!;
+    const wrapper = document.createElement("main"); wrapper.setAttribute("role","main");
+    list.replaceWith(wrapper); wrapper.append(list);
+  });
+  await show(page);
+  await expect(page.getByLabel("Customer message")).toHaveValue(/return my unused order/);
+  await expect(page.getByLabel("Customer message")).not.toHaveValue(/Unrelated private/);
+  await generate(page);
+  await page.close();
+});
+test("Outlook captures delayed message rendering and follows conversation navigation automatically", async () => {
+  const page = await pageFor("https://outlook.cloud.microsoft/mail/inbox/id/late", "outlook.html");
+  const body = await page.locator("#customer").innerHTML();
+  await page.locator("#customer").evaluate(el => el.remove());
+  await show(page);
+  await expect(page.getByLabel("Customer message")).toHaveValue("");
+  await page.locator("article").evaluate((el, body) => { const n=document.createElement("div");n.id="customer";n.setAttribute("role","document");n.innerHTML=body;el.append(n); }, body);
+  await expect(page.getByLabel("Customer message")).toHaveValue(/return my unused order/);
+  await generate(page);
+  await page.evaluate(() => { history.pushState({}, "", "/mail/inbox/id/next"); document.querySelector("#customer")!.textContent="Where is the replacement for my broken order?"; });
+  await expect(page.getByLabel("Customer message")).toHaveValue(/replacement for my broken order/);
+  await expect(page.locator("#result")).toBeHidden();
+  await page.close();
+});
+test("Outlook watcher accepts email markup and detects a new reply", async () => {
+  const page = await pageFor("https://outlook.office.com/mail/inbox/id/watch", "outlook.html");
+  await show(page);
+  await page.getByRole("button", {name:"Watch customer replies",exact:true}).click();
+  await expect(page.getByLabel("Review your draft")).toHaveValue(/37 days/);
+  await page.locator("#customer").evaluate(el => { el.textContent="Can I return my unused order? I have now found my receipt."; });
+  await expect(page.getByLabel("Customer message")).toHaveValue(/found my receipt/, {timeout:12000});
+  await expect(page.getByLabel("Review your draft")).toHaveValue(/37 days/);
+  await expect(page.getByRole("button",{name:"Pause watching",exact:true})).toBeVisible();
+  await page.close();
+});
 test("Outlook refuses stale conversation drafts and protects existing reply text", async () => {
   const page = await pageFor(
     "https://outlook.office.com/mail/inbox/id/38",

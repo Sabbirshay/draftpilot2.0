@@ -31,6 +31,7 @@ async function activeTab() {
       url.hostname === "mail.google.com" ||
       ([
         "outlook.office.com",
+      "outlook.cloud.microsoft",
         "outlook.office365.com",
         "outlook.live.com",
       ].includes(url.hostname) &&
