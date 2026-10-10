@@ -13,9 +13,9 @@ import {
 const isolated = globalThis as typeof globalThis & {
   __draftpilotInstalled?: string | boolean;
 };
-if (isolated.__draftpilotInstalled !== "1.5.1") {
+if (isolated.__draftpilotInstalled !== "1.5.2") {
   document.querySelectorAll("[data-draftpilot-root]").forEach(el => el.remove());
-  isolated.__draftpilotInstalled = "1.5.1";
+  isolated.__draftpilotInstalled = "1.5.2";
   let adapter: Adapter = adapterForPage();
   let capture: Captured | null = null,
     capturedKey = "",
@@ -24,8 +24,7 @@ if (isolated.__draftpilotInstalled !== "1.5.1") {
     target: HTMLElement | null = null;
   let host: HTMLDivElement | undefined, root: ShadowRoot | undefined;
   let picking: "message" | "reply" | null = null;
-  let requestId = crypto.randomUUID(),
-    busy = false,
+  let busy = false,
     generatedRevision = -1;
   let watcher: WatchSource | null = null;
   let watchTimer: ReturnType<typeof setInterval> | undefined;
@@ -189,7 +188,6 @@ if (isolated.__draftpilotInstalled !== "1.5.1") {
     draftDirty = false;
     revision++;
     generatedRevision = -1;
-    requestId = crypto.randomUUID();
     if (root) {
       get<HTMLTextAreaElement>("draft").value = "";
       get("result").hidden = true;
@@ -278,7 +276,15 @@ if (isolated.__draftpilotInstalled !== "1.5.1") {
     return { ok: true };
   }
   async function rpc(message: Record<string, unknown>) {
-    const result = await chrome.runtime.sendMessage(message);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const result = await Promise.race([
+      chrome.runtime.sendMessage(message),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(
+          "The extension did not respond in time. Try Generate draft again."
+        )), 65000);
+      }),
+    ]).finally(() => clearTimeout(timer));
     if (!result)
       throw new Error(
         "Extension connection unavailable. Reload this page and try again.",
@@ -379,6 +385,7 @@ if (isolated.__draftpilotInstalled !== "1.5.1") {
     get<HTMLButtonElement>("generate").disabled = true;
     get("generate").textContent = "Preparing your draft…";
     get("result").hidden = true;
+    status("Preparing your draft…");
     try {
       const result = await rpc({
         type: "DP_GENERATE",
@@ -386,7 +393,8 @@ if (isolated.__draftpilotInstalled !== "1.5.1") {
         agentContext: scrubPII(get<HTMLTextAreaElement>("agent-context").value).text,
         tone: get<HTMLSelectElement>("tone").value,
         channel: adapter.id,
-        requestId,
+        // Each explicit attempt is new; never reuse a failed reservation.
+        requestId: crypto.randomUUID(),
       });
       if (version !== revision) {
         status("Context changed while generating. Generate a fresh draft.");
