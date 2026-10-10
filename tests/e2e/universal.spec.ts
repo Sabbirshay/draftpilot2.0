@@ -559,6 +559,48 @@ test("pairing survives a browser restart and automatic customer capture works", 
   await page.close();
 });
 
+test("failed draft can be retried unchanged with a new request ID and cleared error", async () => {
+  const page = await pageFor(zendesk, "zendesk.html");
+  await show(page);
+  await worker.evaluate(() => {
+    const state = globalThis as any;
+    state.retryOriginalFetch = globalThis.fetch;
+    state.retryIds = [];
+    globalThis.fetch = async (input, init) => {
+      if (String(input).endsWith("/drafts/generate")) {
+        state.retryIds.push(JSON.parse(String(init?.body)).requestId);
+        if (state.retryIds.length === 1) return Response.json({
+          message: "This request is already pending or failed. Use a new request ID to retry.",
+        }, {status: 409});
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+      return state.retryOriginalFetch(input, init);
+    };
+  });
+  try {
+    const button = page.getByRole("button", {name: "Generate draft", exact: true});
+    await button.click();
+    await expect(page.getByRole("status")).toContainText("already pending or failed");
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(page.getByRole("status")).toHaveText("Preparing your draft…");
+    await expect(page.getByRole("button", {name: "Preparing your draft…", exact: true})).toBeDisabled();
+    await expect(page.getByLabel("Review your draft")).toHaveValue(/37 days/);
+    const ids = await worker.evaluate(() => (globalThis as any).retryIds);
+    expect(ids).toHaveLength(2);
+    expect(ids[0]).not.toBe(ids[1]);
+    await expect(button).toBeEnabled();
+  } finally {
+    await worker.evaluate(() => {
+      const state = globalThis as any;
+      globalThis.fetch = state.retryOriginalFetch;
+      delete state.retryOriginalFetch;
+      delete state.retryIds;
+    });
+    await page.close();
+  }
+});
+
 test("revoked sessions cannot quietly fall back to ungrounded local generation", async () => {
   await fetch(api.url + "/extension/sessions", {
     method: "DELETE",
@@ -594,3 +636,4 @@ test("disconnect button revokes the persistent credential on the server", async 
  expect(active.rows[0].n).toBe(0);
  await page.close(); await settings.close();
 });
+

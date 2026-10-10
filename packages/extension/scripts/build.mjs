@@ -49,7 +49,7 @@ await writeFile(
     {
       manifest_version: 3,
       name: "DraftPilot — Customer Support Copilot",
-      version: "1.5.1",
+      version: "1.5.2",
       description:
         "Capture customer messages and insert reviewed replies across Gmail, Outlook, Zendesk and regular web pages. Never sends automatically.",
       permissions: [
