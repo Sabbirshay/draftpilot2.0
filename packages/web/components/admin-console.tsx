@@ -1093,11 +1093,11 @@ export default function AdminConsole({ demo }: { demo: boolean }) {
                     </div>
                     <div className="admin-fields">
                       <label>
-                        Maximum output tokens
+                        Maximum output tokens (reasoning + reply)
                         <input
                           type="number"
                           min={100}
-                          max={1200}
+                          max={4096}
                           value={pipeline.max_output_tokens}
                           onChange={(e) =>
                             setPipeline({

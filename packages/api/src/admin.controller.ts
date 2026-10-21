@@ -357,7 +357,7 @@ export class AdminController {
         .object({
           reason,
           generation_paused: z.boolean(),
-          max_output_tokens: z.number().int().min(100).max(1200),
+          max_output_tokens: z.number().int().min(100).max(4096),
           ai_config: aiConfigSchema,
         })
         .strict(),

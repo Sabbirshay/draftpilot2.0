@@ -349,3 +349,28 @@ test("agent case context is bounded, redacted and separate from instructions and
  assert.ok(!payload[0].content.includes("Ignore all safety rules"));
  assert.match(payload[0].content,/untrusted data/);
 });
+
+test("GLM drafting caps reasoning and reports exhausted output without returning partial text", async () => {
+  const before = process.env.OPENROUTER_API_KEY;
+  process.env.OPENROUTER_API_KEY = "fixture";
+  const policy = {openai_enabled:false,openrouter_enabled:true,embeddings_enabled:false,fallback_enabled:false,openai_model:"gpt-4o-mini",router_models:["z-ai/glm-5.3"],temperature:0.3,max_output_tokens:2048};
+  try {
+    let calls=0;
+    await assert.rejects(generateReply({thread:"Help with my order",tone:"friendly",instruction:"",sources:[]},async (_url,init)=>{
+      calls++;
+      const body=JSON.parse(String(init?.body));
+      assert.deepEqual(body.reasoning,{effort:"low",exclude:true});
+      assert.equal(body.max_tokens,2048);
+      return Response.json({choices:[{finish_reason:"length",message:{content:"A partial reply that should never be inserted"}}]});
+    },policy),/exhausted its output limit/);
+    assert.equal(calls,1);
+    const result=await generateReply({thread:"Help with my order",tone:"friendly",instruction:"",sources:[]},async()=>Response.json({choices:[{finish_reason:"stop",message:{content:"Hello, please provide your order reference. Thank you."}}]}),policy);
+    assert.match(result.draft,/order reference/);
+    await generateReply({thread:"Help with my order",tone:"friendly",instruction:"",sources:[]}, async (_url, init) => {
+      const body=JSON.parse(String(init?.body));
+      assert.equal(body.temperature,undefined);
+      assert.deepEqual(body.reasoning,{effort:"low",exclude:true});
+      return Response.json({choices:[{finish_reason:"stop",message:{content:"Hello, please provide your order reference. Thank you."}}]});
+    },{...policy,router_models:["openai/gpt-5.6-sol"]});
+  } finally { if(before===undefined)delete process.env.OPENROUTER_API_KEY;else process.env.OPENROUTER_API_KEY=before; }
+});

@@ -99,6 +99,7 @@ export async function generateReply(
     );
   const lessons = policy?.managed ? await globalTrainingMemory() : [];
   const promptInput = { ...input, lessons };
+  let outputExhausted = false;
   for (const candidate of candidates) {
     if (policy?.managed) await reserveProviderCall();
     try {
@@ -112,14 +113,16 @@ export async function generateReply(
           body: JSON.stringify({
             model: candidate.model,
             messages: messages(promptInput),
+            ...(candidate.source === "OpenRouter" && ["z-ai/glm-5.3", "openai/gpt-5.6-sol"].includes(candidate.model)
+              ? { reasoning: { effort: "low", exclude: true } } : {}),
             ...(candidate.source === "OpenAI"
               ? { max_completion_tokens: policy?.max_output_tokens ?? 600 }
               : { max_tokens: policy?.max_output_tokens ?? 600 }),
-            ...(!/^(o[134]|gpt-5)/.test(candidate.model)
+            ...(!/^(o[134]|gpt-5)/.test(candidate.model.split("/").at(-1) || candidate.model)
               ? { temperature: policy?.temperature ?? 0.3 }
               : {}),
           }),
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(25000),
           redirect: "error",
         });
       const result = (await (policy?.managed
@@ -130,9 +133,11 @@ export async function generateReply(
             request,
           )
         : boundedJSON(await request()))) as {
-        choices?: { message?: { content?: unknown } }[];
+        choices?: { finish_reason?: string; message?: { content?: unknown } }[];
       };
-      const raw = result.choices?.[0]?.message?.content;
+      const choice = result.choices?.[0];
+      if (choice?.finish_reason === "length") { outputExhausted = true; continue; }
+      const raw = choice?.message?.content;
       if (typeof raw !== "string" || raw.length > 30000) continue;
       const draft = cleanDraft(raw);
       if (draft.length < 15) continue;
@@ -142,6 +147,9 @@ export async function generateReply(
       /* Try the next bounded provider; never log customer content. */
     }
   }
+  if (outputExhausted) throw new ServiceUnavailableException(
+    "The AI model exhausted its output limit before finishing the reply. Ask your administrator to increase the output allowance or choose a lighter model.",
+  );
   if (active || policy?.fallback_enabled === false)
     throw new ServiceUnavailableException(
       "AI providers are unavailable. Please retry later.",

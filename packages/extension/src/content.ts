@@ -13,9 +13,9 @@ import {
 const isolated = globalThis as typeof globalThis & {
   __draftpilotInstalled?: string | boolean;
 };
-if (isolated.__draftpilotInstalled !== "1.5.1") {
+if (isolated.__draftpilotInstalled !== "1.5.2") {
   document.querySelectorAll("[data-draftpilot-root]").forEach(el => el.remove());
-  isolated.__draftpilotInstalled = "1.5.1";
+  isolated.__draftpilotInstalled = "1.5.2";
   let adapter: Adapter = adapterForPage();
   let capture: Captured | null = null,
     capturedKey = "",
@@ -406,6 +406,10 @@ if (isolated.__draftpilotInstalled !== "1.5.1") {
         : "Workspace connected";
       get("result").hidden = false;
       status(result.local ? "Local template only: your context and workspace knowledge were not used. Connect your workspace for AI drafting." : "Draft ready using your context and available knowledge. Review, then insert.");
+    } catch (error) {
+      // A failed reservation cannot be reused. Explicit retry gets a fresh ID.
+      if (version === revision) requestId = crypto.randomUUID();
+      throw error;
     } finally {
       busy = false;
       get<HTMLButtonElement>("generate").disabled = false;
