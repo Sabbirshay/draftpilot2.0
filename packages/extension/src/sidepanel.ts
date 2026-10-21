@@ -76,6 +76,7 @@ el("generate").onclick = async () => {
   const version = inputRevision;
   button.disabled = true;
   button.textContent = "Preparing your draft…";
+  status("Preparing your draft…");
   try {
     const clean = scrubPII(context.value);
     context.value = clean.text;
